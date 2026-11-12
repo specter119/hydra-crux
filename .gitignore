@@ -1,0 +1,31 @@
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Local scratch: design iterations, screenshots, throwaway validators.
+# Evidence for a review pass belongs in the target project, not here.
+.work/
+.work*/
+
+# Reviews of this skill, and the record of what they changed. These are working
+# evidence from past passes, not documentation of how to use the skill: they name
+# defects that no longer exist and paths that have since moved.
+.evidence/
+
+# The social-preview render is produced from icon.svg on demand and uploaded to
+# GitHub Settings; it is never served by the README, so it does not belong in the
+# repository. Regenerate with:
+#   rsvg-convert -w 512 -h 512 -o /tmp/icon-512.png docs/assets/icon.svg
+docs/assets/*.png

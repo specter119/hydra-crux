@@ -1,0 +1,88 @@
+# Configuration file for `prek`, a git hook framework written in Rust.
+# See https://prek.j178.dev for more information.
+#:schema https://www.schemastore.org/prek.json
+minimum_prek_version = "0.4.12"
+
+# Markdown formatting. `mdformat-gfm` covers tables and other GFM syntax;
+# `mdformat-front-matters` keeps SKILL.md metadata parseable while formatting the body.
+[[repos]]
+repo = "https://github.com/hukkin/mdformat"
+rev = "1.0.0"
+hooks = [
+  {
+    id = "mdformat",
+    # `--number` keeps ordered lists consecutive. These documents are read as raw
+    # text by agents that refer to rules by number, so the default (every item
+    # written `1.`) loses information the renderer would have supplied.
+    args = ["--wrap", "keep", "--number"],
+    additional_dependencies = [
+      "mdformat-gfm==1.0.0",
+      "mdformat-front-matters==2.0.0",
+    ],
+    priority = 1,
+  },
+]
+
+# Standard hooks, run by prek's Rust-native built-in implementations.
+[[repos]]
+repo = "builtin"
+hooks = [
+  { id = "detect-private-key" },
+  { id = "check-case-conflict" },
+  { id = "check-json" },
+  { id = "check-toml" },
+  { id = "check-merge-conflict" },
+  { id = "check-symlinks" },
+  # Whitespace fixers run after the formatters so their output is final.
+  { id = "end-of-file-fixer", priority = 2 },
+  { id = "trailing-whitespace", args = ["--markdown-linebreak-ext=md"], priority = 2 },
+  { id = "check-added-large-files", args = ["--maxkb=500"] },
+]
+
+# `detect-aws-credentials` has no built-in implementation, so it still comes from
+# the upstream pre-commit-hooks repository.
+[[repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v6.0.0"
+hooks = [
+  { id = "detect-aws-credentials", args = ["--allow-missing-credentials"] },
+]
+
+# Markdown linting, after formatting so it only reports what mdformat leaves alone.
+[[repos]]
+repo = "https://github.com/DavidAnson/markdownlint-cli2"
+rev = "v0.24.0"
+hooks = [
+  { id = "markdownlint-cli2", args = ["--fix"], priority = 2 },
+]
+
+# Detect secrets and credentials
+[[repos]]
+repo = "https://github.com/Yelp/detect-secrets"
+rev = "v1.5.0"
+hooks = [
+  {
+    id = "detect-secrets",
+    args = ["--baseline", ".secrets.baseline"],
+    exclude = "package.lock.json",
+  },
+]
+
+# Repository-specific validation.
+# This repo ships its meta skills from `skills/` (they are installed globally, so
+# they are not project-scope skills here) and keeps its worked examples under
+# `examples/`, where a stance set is installed the way a target project would.
+# The validator is the vendored dependency-free one; it enforces the Agent Skills
+# spec (kebab-case name, description limits, allowed frontmatter keys).
+[[repos]]
+repo = "local"
+hooks = [
+  {
+    id = "validate-skills",
+    name = "Validate skills",
+    entry = "./scripts/validate-skills.sh",
+    language = "script",
+    files = '^(skills|examples/[^/]+/\.agents/skills)/[^/]+/SKILL\.md$',
+    pass_filenames = false,
+  },
+]
