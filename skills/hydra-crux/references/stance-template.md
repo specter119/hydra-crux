@@ -14,7 +14,7 @@ description: >-
   not use for <the sibling concerns this stance routes away>.
 disable-model-invocation: true
 metadata:
-  stance-axis: <the contended resource, e.g. correctness-vs-availability>
+  stance-axis: <one name per pair, comma-separated, e.g. correctness-vs-availability>
   opposes: <project>-<other-stake>-stance
 ---
 
@@ -35,6 +35,15 @@ at a diff and say "this violates it" or "this serves it". No hedging, no
 specific: which sibling stance loses what, and how much. This section is what
 makes the stance a stance, and it is the first thing the orchestrator reads
 when deciding whether a reported conflict is real.>
+
+<**One entry per sibling, and the sibling's name opens the entry**, in the
+form `- **\`<project>-<other>-stance\` pays**: <what it loses>`. The name is
+what a machine reads: a stance that names a sibling here but not in its
+`metadata.opposes` has described a harm nobody is assigned to contest, and a
+sibling in `opposes` with no entry here has no stated cost, so its conflicts
+will read as manufactured.>
+
+- **`<project>-<other>-stance` pays**: <the concrete cost, and how much>
 
 ## Attacks
 

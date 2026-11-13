@@ -22,11 +22,11 @@ look like.
 
 ## Stances
 
-| Stance                      | Axis                        | Objective (one line)                             | Accepts                                                                     |
-| --------------------------- | --------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
-| `acme-integrity-stance`     | correctness-vs-throughput   | Persist only verified records; report the rest   | Slower writes, no bulk fast path, refuses writes when schema is unavailable |
-| `acme-throughput-stance`    | correctness-vs-throughput   | Amortize every remote interaction across records | Batch-level blast radius, idempotent-replay assumptions                     |
-| `acme-reversibility-stance` | reversibility-vs-throughput | Every release can be undone without an operator  | Keeps old readers alive, costs code paths and inline compaction             |
+| Stance                      | Axes                                                    | Objective (one line)                             | Accepts                                                                     |
+| --------------------------- | ------------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
+| `acme-integrity-stance`     | correctness-vs-throughput, reversibility-vs-integrity   | Persist only verified records; report the rest   | Slower writes, no bulk fast path, refuses writes when schema is unavailable |
+| `acme-throughput-stance`    | correctness-vs-throughput, reversibility-vs-throughput  | Amortize every remote interaction across records | Batch-level blast radius, idempotent-replay assumptions                     |
+| `acme-reversibility-stance` | reversibility-vs-integrity, reversibility-vs-throughput | Every release can be undone without an operator  | Keeps old readers alive, costs code paths and inline compaction             |
 
 ## Oppositions
 

@@ -8,7 +8,7 @@ description: >-
 disable-model-invocation: true
 metadata:
   internal: true
-  stance-axis: reversibility-vs-throughput
+  stance-axis: reversibility-vs-integrity, reversibility-vs-throughput
   opposes: acme-integrity-stance, acme-throughput-stance
 ---
 
@@ -29,12 +29,14 @@ consumes state the old code cannot read violates this stance.
 
 ## Accepts this harm
 
-This stance knowingly costs throughput and code paths. Keeping a migration
-reversible means keeping the old reader alive, which costs code paths that
-`acme-integrity-stance` would like to delete and that
-`acme-throughput-stance` would like to skip. It also costs throughput: a
-reversible write may need to write both shapes, or defer a compaction that
-would otherwise run inline.
+This stance knowingly costs code paths, throughput, and delivery speed.
+
+- **`acme-integrity-stance` pays**: keeping a migration reversible means
+  keeping the old reader alive, and that reader is a second write path the
+  integrity stance cannot delete because it still has to admit records.
+- **`acme-throughput-stance` pays**: a reversible write may need to write both
+  shapes, or defer a compaction that would otherwise run inline, so the
+  batch's remote calls are paid twice or postponed.
 
 It also slows delivery, and that cost is paid to nobody: no stance in this set
 maximizes shipping speed. The registry records delivery momentum under

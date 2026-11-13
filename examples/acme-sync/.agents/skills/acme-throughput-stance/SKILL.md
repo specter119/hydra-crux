@@ -8,7 +8,7 @@ description: >-
 disable-model-invocation: true
 metadata:
   internal: true
-  stance-axis: correctness-vs-throughput
+  stance-axis: correctness-vs-throughput, reversibility-vs-throughput
   opposes: acme-integrity-stance, acme-reversibility-stance
 ---
 
@@ -29,12 +29,17 @@ per-record violates this stance, even if it makes that path more verifiable.
 
 ## Accepts this harm
 
-This stance knowingly costs verification granularity and blast radius.
-Batching means a partial failure affects a whole batch, and a batch-level
-retry can re-send records that already landed, so the system must tolerate
-idempotent replay rather than assume exactly-once. It also costs rollback
-scope: a batch is the smallest unit that can be undone cheaply.
-`acme-integrity-stance` and `acme-reversibility-stance` pay for both costs.
+This stance knowingly costs verification granularity, blast radius, and
+rollback scope.
+
+- **`acme-integrity-stance` pays**: batching means a partial failure affects a
+  whole batch, and a batch-level retry can re-send records that already
+  landed, so the system has to tolerate idempotent replay rather than assume
+  exactly-once. A record that needed per-record verification waits for the
+  batch it was bundled into.
+- **`acme-reversibility-stance` pays**: a batch is the smallest unit that can
+  be undone cheaply, so undoing one bad record means replaying or repairing
+  the batch it belonged to.
 
 ## Attacks
 

@@ -48,6 +48,25 @@ Describe where the pair has competed, not what the pass should find. A column of
 predicted conflicts becomes a checklist the orchestrator feeds back into the
 brief, and the pass then confirms the prediction instead of testing the design.
 
+This table is the authority on the set's shape. Every pair here must appear in
+both stances' `metadata.opposes`, every stance must be in at least one row, and
+no stance may oppose more than two others. A stance that opposes three is a hub
+and the other stances are its projections: a pass then needs only the hub and
+one opponent to cover every conflict, and the rest are overhead. If a stake
+genuinely contends with three others, split it or move one of the pairs to a
+sibling that already shares that resource.
+
+The axis name on a pair is written once, in the direction of the first stance
+in the row. Both stances copy it verbatim into `metadata.stance-axis`; naming
+the same pair `a-vs-b` in one file and `b-vs-a` in the other makes the two
+files disagree about which direction is the objective and which is the cost.
+
+A stance in several pairs carries one axis per pair, comma-separated in the
+one `stance-axis` field: `stance-axis: correctness-vs-throughput,
+reversibility-vs-integrity`. Do not repeat the key — duplicate keys are
+invalid YAML — and do not name a new pair after the resource alone, which
+would give the same pair two names.
+
 ## Contract surfaces
 
 Decisions from a stance conflict land in these places. A resolution that

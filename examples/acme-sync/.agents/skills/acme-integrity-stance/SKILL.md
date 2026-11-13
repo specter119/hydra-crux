@@ -8,7 +8,7 @@ description: >-
 disable-model-invocation: true
 metadata:
   internal: true
-  stance-axis: correctness-vs-throughput
+  stance-axis: correctness-vs-throughput, reversibility-vs-integrity
   opposes: acme-throughput-stance, acme-reversibility-stance
 ---
 
@@ -29,12 +29,17 @@ record violates this stance.
 
 ## Accepts this harm
 
-This stance knowingly costs throughput. Per-record validation means no bulk
-fast path, and a batch of 10,000 records with one malformed entry stops at that
-entry rather than streaming past it. It also costs availability: when the
-remote's schema is unavailable, this stance prefers refusing writes over
-writing unchecked. `acme-throughput-stance` pays for both costs, and that is
-the point.
+This stance knowingly costs throughput, availability, and the ability to
+delete legacy paths.
+
+- **`acme-throughput-stance` pays**: per-record validation means no bulk fast
+  path, and a batch of 10,000 records with one malformed entry stops at that
+  entry rather than streaming past it. When the remote's schema is
+  unavailable, this stance prefers refusing writes, so the batch waits on a
+  schema read.
+- **`acme-reversibility-stance` pays**: a write path that refuses unverified
+  records cannot dual-write a legacy shape to keep an old reader alive, so
+  the rollback window this stance depends on is narrower on every write.
 
 ## Attacks
 
