@@ -131,6 +131,13 @@ agent instead of a committee. Fix: split the halves into two stances, or mark on
 clause as a standing constraint the other may not trade against and say so in the
 Objective. Two objectives joined by "and" is a defect, not thoroughness.
 
+**The stance that should have been a rule.** An attack or bad pattern a lint
+rule, a type, or a test could catch on every change. It costs a reviewer and a
+briefing to enforce what the toolchain enforces for free. Fix: write the rule
+and delete the entry; only a tradeoff no rule can decide belongs in a stance.
+A skill may ship the rule itself as `scripts/lint_*.py`, which the repository
+runs on every commit.
+
 ## Sizing the set
 
 - 3 to 6 stances is the working range. Below 3 there is rarely a real

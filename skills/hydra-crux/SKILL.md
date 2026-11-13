@@ -211,6 +211,14 @@ Then verify the entry point actually works from the target project:
 An entry point naming a skill that is not installed is worse than no entry point:
 it reads as a working procedure and fails at the first step.
 
+A rule that can be checked mechanically belongs in `scripts/lint_*.py` inside
+the skill, not in prose. This skill ships two: `lint_stance_not_seeded.py` (a
+stance may not name a current symbol or carry an unfixed violation) and
+`lint_registry_paths_tracked.py` (a cited path must survive a fresh clone).
+Both run through `scripts/lint-skills.sh` on every commit, and each must pass
+its own `--self-test`, so a rule that silently stops firing fails the same gate
+that runs it.
+
 ## Run and maintain the loop
 
 The set is not static. Each review pass feeds back into it:

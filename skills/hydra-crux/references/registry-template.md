@@ -23,7 +23,11 @@ faulty review. Do not invent a conflict to satisfy the map.
 
 This file is read by the orchestrator. Do not hand it to a reviewer: it names
 the oppositions the orchestrator expects, and a reviewer that has read it will
-find them.
+find them. A registry in the project's own `.agents/skills/` is discoverable by
+the model, so the brief must name the one stance file to read and nothing else.
+
+Every path this file cites must survive a fresh clone; check each with the
+version-control ignore query before writing it down.
 
 ## Stances
 
@@ -66,9 +70,11 @@ it is a design that serves both.
 Conflicts waiting on a user decision. Each must follow the format in
 [escalation.md](../../hydra-crux/references/escalation.md).
 
-| Conflict | Pair | Status | Decision record |
-| --- | --- | --- | --- |
-| <id> | <pair> | open / decided | <path or pending> |
+| Conflict | Pair | Status | Owner and next action | Decision record |
+| --- | --- | --- | --- | --- |
+| <id> | <pair> | open / decided | <who decides, and what they must do> | <path or pending> |
+
+A row with no owner is the deferred conflict: the current design wins by default.
 
 ## Decisions that sacrificed a stance
 
@@ -87,6 +93,16 @@ changed something.
 | Date | Pass | Conflict found | Effect on design or set |
 | --- | --- | --- | --- |
 | <date> | <scope> | <pair and crux> | <merged / escalated / stance edited / stance retired> |
+
+## Unrepresented stakes
+
+Objectives the project holds that no stance represents, and the reason each is
+left out. This table is the set's own list of blind spots; a finding that lands
+here is a missing stance, not a missing check.
+
+| Stake | Evidence | Why no stance |
+| --- | --- | --- |
+| <objective> | `<path>#<section>` | <no opponent found / deliberately out of scope> |
 ```
 
 ## Registry rules
@@ -102,3 +118,6 @@ changed something.
   hides the cost of the current design.
 - Keep the tables short. If a table needs more than a screen, the conflict has
   outgrown the registry and belongs in a decision record with a link here.
+- `Unrepresented stakes` is read at every pass. A finding no stance could have
+  made is evidence for a row here; a row that survives two passes is the set's
+  known blind spot and belongs in the pass result.

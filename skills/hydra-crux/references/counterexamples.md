@@ -34,7 +34,8 @@ Every `## Patterns` entry needs:
   another project.
 
 An entry that cannot supply a grounded "why it looks reasonable" is a bug
-report, and belongs in the issue tracker.
+report, and belongs in the issue tracker. An entry a lint rule or a test could
+catch is a rule or a test, and belongs in the project's toolchain.
 
 ## Patterns
 

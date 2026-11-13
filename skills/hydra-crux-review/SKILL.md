@@ -46,6 +46,11 @@ A pass is bound when the target revision, the reviewer list, and the
 constraining prior decisions are written down. Do not start reviewers before
 this, or they will each invent their own scope.
 
+Record the binding in a tracked path — the project's decision records or the
+registry's `## Evidence` — before the first reviewer starts. A scope and an
+adjudication in a scratch or ignored directory are gone for the next reader,
+who then re-litigates a decision whose reasoning nobody can find.
+
 ## 2. Brief each reviewer
 
 Give each reviewer exactly one stance and nothing else. The brief contains:
@@ -74,6 +79,9 @@ anchors on it and the disagreement collapses. The single exception is the
 bounded contest in step 3b, where an opponent sees a proposal and not the
 argument behind it.
 
+The same applies to the registry, which names the oppositions you expect. Keep
+it, the discovery map, and the list of oppositions out of the brief.
+
 Reviewer output format, one block per finding:
 
 ```text
@@ -89,11 +97,21 @@ Confidence: <high / medium / low, with the reason>
 A finding without evidence is a hypothesis. Keep it, labeled, but do not let it
 drive a resolution.
 
+A finding the project's own gates already prevent is not a finding. Run them
+before reconciling and drop what they catch; a fix that a lint rule or a test
+can hold is a rule or a test, not a review verdict.
+
 Ask each reviewer to mark findings it took from its own stance's **Attacks**
 as `seen before` and findings it discovered independently as `new`. A stance
 whose reviewer reports only `seen before` findings was either accurate or was
 pre-loaded with the answers; the orchestrator cannot tell which without this
 label, and the difference decides whether the pass proved anything.
+
+The label is only as good as the stance file. A stance written around its
+author's open findings — current symbols in **Attacks**, an unfixed violation in
+**Bad patterns**, the defect restated in the Objective — produces a report that
+reads as a strong pass and proves nothing. Check for that before briefing; if
+the stance fails, its `seen before` findings are not evidence the stance works.
 
 ## 3. Reconcile
 
@@ -184,6 +202,9 @@ states; every joint solution names **both** stances' confirmations; every
 unresolved-evidence conflict names a measurement, an owner, and an end condition;
 and every incompatible one is escalated or waiting on a user answer.
 
+An escalation is a message to the user, sent during the pass. A conflict filed
+under an "escalated" heading in a document has not been escalated.
+
 ## 5. Record
 
 Write the pass into the registry and the project's decision records.
@@ -205,11 +226,19 @@ ignored file is a dead pointer for every later reader. A decision record belongs
 where the project's own ownership rules put decision records — read them and
 follow them, rather than inventing a location.
 
+Check the exact path, not the directory's name, with the version-control tool's
+own query (`git check-ignore -v <path>`). A project that ignores `.evidence/`
+also ignores the discovery map and the adjudication, and the maintainer sees no
+breakage because the file is still on their disk.
+
 Do not record a resolution before it exists. A registry row that says a buffer
 was adopted, while the code still does the old thing, is a false success and it
 becomes permanent the moment the next reader trusts it. Distinguish three states
 in the ledger and never collapse them: **findings recorded**, **fix implemented**,
 and **fix verified**. Most passes end at the first.
+
+An open conflict's row names its owner and next action. Without them it is the
+deferred conflict: the current design wins by default.
 
 Then apply the change to the code, if the pass was authorized to change code.
 A review pass that ends at findings is a survey; say so rather than implying the
@@ -258,7 +287,8 @@ the moment it would help. Change the attack list to describe the generalized
 shape, and record in the stance's own history that the pass added it. If the
 pattern is project-specific, it belongs in the registry's counterexamples table;
 if it is project-neutral, in the library's `## Patterns` section — never a
-project's paths in the general file.
+project's paths in the general file. A pattern a lint rule or a test could
+catch goes to the project's toolchain instead.
 
 Do not harvest bugs, missing tests, or anything that only looks wrong in
 hindsight. A counterexample library full of obvious mistakes is worse than
@@ -288,6 +318,8 @@ These are the failure modes that make adversarial review theater:
   or because the orchestrator prefers it. That decision is the user's.
 - **Escalation fatigue.** Escalating negotiable conflicts trains the user to
   approve without reading. The four-part test exists to prevent this.
+- **The filled-in map.** Reporting the conflicts the registry predicts. The
+  pass then confirms the map and says nothing about the design.
 
 ## When to use fewer reviewers
 

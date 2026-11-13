@@ -144,7 +144,7 @@ Rules for the format:
 ## After the decision
 
 1. Record the decision in the project's decision records, not in the stance
-   files.
+   files, and in a path that survives a fresh clone.
 2. Add a row to the registry's `Decisions that sacrificed a stance`, naming the
    losing objective and what was given up. The losing stance stays installed.
 3. Update the affected stance's **Accepts this harm** only if the decision
@@ -164,6 +164,15 @@ cannot name which stance's objective the design fully serves, it is an average.
 **The deferred conflict.** Recording a conflict as "open" without escalating it
 and without a date. An open conflict that nobody is deciding is a decision to
 let the current design win by default.
+
+**The filed escalation.** Writing the conflict under a heading that says
+escalated and ending the pass there. The user never sees it, and the document
+is usually the one file nobody clones. The document is the record of an
+escalation, not a substitute for it.
+
+**The ownerless conflict.** An open conflict whose row names a status but no
+owner and no next action. Every orchestrator reads it as already assigned, so
+it survives passes unchanged.
 
 **The unilateral tiebreak.** Choosing a winner because one stance is easier to
 satisfy, or because the agent has a preference. The agent's job is to make the

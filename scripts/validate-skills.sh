@@ -12,25 +12,35 @@ if [ ! -f "$VALIDATE_SCRIPT" ]; then
 fi
 
 # The published meta skills live in `skills/`; the worked examples demonstrate
-# installing a stance set into a target project's `.agents/skills/`.
-SKILLS_DIRS=(
-    "$ROOT_DIR/skills"
-    "$ROOT_DIR"/examples/*/.agents/skills
-)
+# installing a stance set into a target project's `.agents/skills/`. Both are
+# found by walking the tree, so a new directory needs no edit here.
 
 FAILED=0
 FOUND=0
-for dir in "${SKILLS_DIRS[@]}"; do
-    [ -d "$dir" ] || continue
-    for skill in "$dir"/*/; do
-        [ -f "$skill/SKILL.md" ] || continue
-        FOUND=$((FOUND + 1))
-        echo "--- ${skill#"$ROOT_DIR"/} ---"
-        if ! python3 "$VALIDATE_SCRIPT" "$skill"; then
+while IFS= read -r skill_md; do
+    skill="$(dirname "$skill_md")"
+    rel="${skill#"$ROOT_DIR"/}"
+    FOUND=$((FOUND + 1))
+    echo "--- $rel ---"
+    if ! python3 "$VALIDATE_SCRIPT" "$skill"; then
+        FAILED=1
+    fi
+    # `lint_*.py` is a mechanical rule, not review guidance: prek runs it on
+    # every commit, so it must be executable and must pass its own check.
+    for lint in "$skill"/scripts/lint_*.py; do
+        [ -f "$lint" ] || continue
+        if [ ! -x "$lint" ]; then
+            echo "$rel: $(basename "$lint") is not executable"
+            FAILED=1
+        elif ! python3 "$lint" --self-test; then
+            echo "$rel: $(basename "$lint") failed its self-test"
             FAILED=1
         fi
     done
-done
+done < <(
+    find "$ROOT_DIR/skills" "$ROOT_DIR"/examples/*/.agents/skills \
+        -name SKILL.md -type f 2>/dev/null | sort
+)
 
 if [ "$FOUND" -eq 0 ]; then
     echo "No SKILL.md files found"

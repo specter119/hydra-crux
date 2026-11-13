@@ -47,7 +47,8 @@ An attack naming a current function, constant, or line is a finding, not an
 attack. If you saw an open violation while reading the code, it belongs in the
 forge's delivery report, not in this file: a stance that already contains the
 answer hands the reviewer a checklist and the pass then confirms the author
-instead of testing the design.>
+instead of testing the design. An attack a lint rule, a type, or a test could
+catch is a rule, not an attack: write the rule instead.>
 
 - <failure mode>
 - <failure mode>
@@ -100,7 +101,8 @@ An open violation is not a bad pattern; it is a finding, and writing it here
 removes the reviewer's job. A stance with only hypothetical bad patterns is not
 grounded in this project, but one seeded with open defects is worse: it makes
 the next pass look productive when it is only confirming what the author already
-knew.
+knew. And a bad pattern a lint rule or a test could catch is a rule or a test,
+not an entry here.
 
 Patterns are evidence about how the objective is violated here. The contract
 that the objective protects stays owned by <the owning document>.

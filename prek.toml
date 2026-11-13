@@ -85,4 +85,14 @@ hooks = [
     files = '^(skills|examples/[^/]+/\.agents/skills)/[^/]+/SKILL\.md$',
     pass_filenames = false,
   },
+  {
+    id = "lint-skills",
+    name = "Lint stance skills",
+    entry = "./scripts/lint-skills.sh",
+    language = "script",
+    # The rules read the whole registry, not one line of it, so they run on
+    # any stance file, registry, or rule change.
+    files = '^(skills|examples/[^/]+/\.agents/skills)/.*\.(md|py)$',
+    pass_filenames = true,
+  },
 ]
