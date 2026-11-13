@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/icon.svg" alt="Hydra" width="140">
+</p>
+
 # Hydra Crux
 
 Adversarial architecture review driven by **opposing stances**, for projects
@@ -37,6 +41,7 @@ hydra-crux/
 │   └── escalation-example.md      # one merged conflict, one escalated
 ├── scripts/                       # vendored skill validator
 ├── prek.toml                      # pre-commit hooks for this repo
+├── docs/assets/icon.svg           # the mark: three heads, one shared body
 └── .evidence/                     # reviews of this skill, gitignored
 ```
 
