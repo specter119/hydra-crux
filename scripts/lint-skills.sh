@@ -1,11 +1,12 @@
 #!/bin/bash
-# Run every mechanical rule in the repository's stance skills.
+# Run every mechanical rule shipped by the repository's skills.
 #
-# A skill may ship `scripts/lint_*.py`. Each is a rule that would
-# otherwise be a paragraph of guidance: a stance seeded with its author's
-# findings, a ledger pointing at a file no clone contains. prek runs this on
-# every commit, so the rule fires on every change instead of only when someone
-# remembers to read the paragraph.
+# A skill may ship `scripts/lint_*.py`. Each rule checks structured data, paths,
+# graph metadata, or a generated artifact. It does not judge authored skill prose:
+# whether a surface has taken back a verdict, whether a stance is seeded with
+# its author's findings, or whether an argument is good is a semantic review
+# question, not a string match. prek runs this on every commit, so structural
+# rules fire on every change instead of only when someone remembers.
 #
 # Each rule takes the changed files and exits non-zero on a violation. It must
 # also pass its own `--self-test`, which `validate-skills.sh` enforces, so a

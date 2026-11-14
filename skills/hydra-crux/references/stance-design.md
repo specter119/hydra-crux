@@ -25,6 +25,19 @@ Example of a non-stance:
 The second cannot lose anything, so it can never conflict, so it produces no
 information.
 
+## Surface and stance are different objects
+
+A surface is a place to look: a file boundary, a contract, a parser, a CLI. It
+owns checks, required evidence, and a scope boundary. A stance is a value that
+would sacrifice something else. It owns an objective, a payer, and an escalation
+condition.
+
+The same surface can be read by several stances. The same stance can read
+several surfaces. This is many-to-many, not a hierarchy. A surface that starts
+arguing for a value has become a stance by accident; a stance that starts
+listing checks has become a surface by accident. Move the text to the right
+object.
+
 ## Anatomy of a stance file
 
 Each section exists to prevent one specific failure:
@@ -55,13 +68,14 @@ set. Test each stance by answering:
 2. Name the stance that change makes worse, and the resource it costs.
 3. Name a change that the other stance would demand which this one resists.
 
-If step 2 has no answer, the stance is not opposed. Either find its opposition
-or delete it — an unopposed stance adds review cost and produces agreement,
-which is the most expensive kind of noise.
+If step 2 has no answer, the stake is unopposed. Do not manufacture an opponent
+to keep it. Record it as an unopposed check or an `unrepresented` interest. An
+unopposed check is useful; an unopposed stance is a value with no cost, and it
+adds review noise.
 
 If step 1 has no answer, the stance is satisfied by the current design. Keep it
-only if the design is fragile enough that a future change could break it; say
-so explicitly in the registry.
+only if the design is fragile enough that a future change could break it; say so
+explicitly in the registry. A named satisfaction is a result; silence is not.
 
 Run the opposition test on a real recent change, not on a hypothetical. A set
 that passes only in the abstract will fail in the first review.
@@ -86,9 +100,9 @@ Resources that reliably produce essential conflicts:
   one implementation.
 - **Reversibility vs momentum** — keep the door open, or commit and move.
 
-Pick the two to four axes that this project actually feels. A project that has
-never argued about latency does not need a latency stance, however defensible
-it sounds.
+Pick the axes this project actually feels. A project that has never argued about
+latency does not need a latency stance, however defensible it sounds. The number
+of axes is evidence, not a target.
 
 ## Failure modes
 
@@ -140,12 +154,20 @@ runs on every commit.
 
 ## Sizing the set
 
-- 3 to 6 stances is the working range. Below 3 there is rarely a real
-  opposition. Above 6, reviewers duplicate and the orchestrator cannot hold the
-  cross-product.
-- 2 to 4 oppositions. Every stance should appear in at least one.
-- One stance per axis. If two stances share an axis and a direction, merge
-  them.
+There is no working range. The count follows the evidence:
 
-Prefer fewer, sharper stances. A stance set is a lens, and more lenses make the
-image dimmer, not clearer.
+- one stance per **side** of an axis, not one per axis;
+- one stance may participate in several axes;
+- one surface may be read by several stances;
+- an unopposed stake is a check, not a stance.
+
+Two stances that push the same direction on every recorded decision are one
+stance. Merge them and say so. Two stances that genuinely contend are not merged
+because the set "already has enough"; that is a count gate, not a design
+decision.
+
+The worked example under `examples/` shows one evidence-driven count. It is not
+a target. A project with three stances is not incomplete.
+
+Prefer sharper stances, not fewer stances. A stance set is a lens; a vague lens
+is worse than several sharp ones.

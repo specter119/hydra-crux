@@ -87,12 +87,12 @@ hooks = [
   },
   {
     id = "lint-skills",
-    name = "Lint stance skills",
+    name = "Lint review artifacts",
     entry = "./scripts/lint-skills.sh",
     language = "script",
-    # The rules read the whole registry, not one line of it, so they run on
-    # any stance file, registry, or rule change.
-    files = '^(skills|examples/[^/]+/\.agents/skills)/.*\.(md|py)$',
+    # The rules read the graph, generated indexes, and paths. They do not read
+    # authored stance or surface prose, so they run on any graph or rule change.
+    files = '^(skills|examples/[^/]+/\.agents)/.*\.(md|py|toml)$',
     pass_filenames = true,
   },
 ]

@@ -145,15 +145,15 @@ Rules for the format:
 
 1. Record the decision in the project's decision records, not in the stance
    files, and in a path that survives a fresh clone.
-2. Add a row to the registry's `Decisions that sacrificed a stance`, naming the
-   losing objective and what was given up. The losing stance stays installed.
+2. Add a `[[sacrifice]]` row to the review graph, naming the losing objective,
+   what was given up, the owner document, the status, and the reopen condition.
+   Regenerate the registry. The losing stance stays installed.
 3. Update the affected stance's **Accepts this harm** only if the decision
    revealed a cost the stance had not admitted. Do not weaken the stance to
    match the decision.
 4. If the decision makes an opposition permanently moot, remove the pair from
-   the registry's `## Oppositions` and say why in `## Evidence`. Removing a
-   stance requires that its objective is no longer a project objective, not
-   that it lost once.
+   the graph's `[[opposition]]` table and record why. Removing a stance requires
+   that its objective is no longer a project objective, not that it lost once.
 
 ## Anti-patterns
 

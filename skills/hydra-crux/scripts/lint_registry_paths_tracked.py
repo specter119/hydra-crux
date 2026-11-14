@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Mechanical rule: a stance set's ledger must survive a fresh clone.
+"""Mechanical rule: a generated stance registry must survive a fresh clone.
 
 hydra-crux-review tells the orchestrator to check every path the registry cites
 with the version-control ignore query. That was guidance; this is the rule. It
 is the defect that made a real pass's adjudication a dead link for every reader
 except the machine that ran it.
+
+The object is a **generated registry artifact**, not authored skill prose. The
+registry is rendered from the graph; this rule only checks that the paths it
+cites are tracked. It does not judge whether the registry's text is true.
 
 What it checks, per registry:
 

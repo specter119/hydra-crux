@@ -47,5 +47,12 @@ if [ "$FOUND" -eq 0 ]; then
     exit 0
 fi
 
+if [ -d "$ROOT_DIR/tests" ]; then
+    echo "--- graph tests ---"
+    if ! python3 -m unittest discover -s "$ROOT_DIR/tests" -q; then
+        FAILED=1
+    fi
+fi
+
 echo "Checked $FOUND skill(s)"
 exit $FAILED

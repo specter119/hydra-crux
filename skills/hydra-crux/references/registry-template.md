@@ -1,7 +1,16 @@
 # Registry template
 
-Copy to `.agents/skills/<project>-stance-registry/SKILL.md`. The registry is the
-single place that knows the whole set. Stances never restate it.
+The registry is generated from `.agents/review-graph.toml`:
+
+```sh
+python3 .agents/skills/hydra-crux/scripts/hydra_graph.py \
+  --graph .agents/review-graph.toml generate \
+  --out .agents/skills --docs-out docs
+```
+
+Do not hand-edit the generated registry. Edit the graph, then regenerate. The
+template below shows the shape the generator produces; it is not a second source
+of truth.
 
 ```markdown
 ---
@@ -17,9 +26,8 @@ description: >-
 
 The stances below are first-principles objectives, not checklists. They are
 deliberately opposed: each one demands something another one pays for. A pass
-that finds no conflict on a change touching a listed opposition should be
-re-examined, but a clean pass is a possible outcome and not evidence of a
-faulty review. Do not invent a conflict to satisfy the map.
+that finds no conflict must name the axes it checked and why the design already
+satisfies them. Do not invent a conflict to satisfy the map.
 
 This file is read by the orchestrator. Do not hand it to a reviewer: it names
 the oppositions the orchestrator expects, and a reviewer that has read it will
@@ -49,12 +57,10 @@ predicted conflicts becomes a checklist the orchestrator feeds back into the
 brief, and the pass then confirms the prediction instead of testing the design.
 
 This table is the authority on the set's shape. Every pair here must appear in
-both stances' `metadata.opposes`, every stance must be in at least one row, and
-no stance may oppose more than two others. A stance that opposes three is a hub
-and the other stances are its projections: a pass then needs only the hub and
-one opponent to cover every conflict, and the rest are overhead. If a stake
-genuinely contends with three others, split it or move one of the pairs to a
-sibling that already shares that resource.
+both stances' `metadata.opposes`, and every stance must be in at least one row.
+A stance may participate in several axes. A stance that opposes many others is a
+hub worth examining, not a hard error: either it is one objective that several
+surfaces contend, or it is several objectives that should be split.
 
 The axis name on a pair is written once, in the direction of the first stance
 in the row. Both stances copy it verbatim into `metadata.stance-axis`; naming
@@ -89,9 +95,9 @@ it is a design that serves both.
 Conflicts waiting on a user decision. Each must follow the format in
 [escalation.md](../../hydra-crux/references/escalation.md).
 
-| Conflict | Pair | Status | Owner and next action | Decision record |
-| --- | --- | --- | --- | --- |
-| <id> | <pair> | open / decided | <who decides, and what they must do> | <path or pending> |
+| Conflict | Pair | Status | Owner and next action | Reopen when | Decision record |
+| --- | --- | --- | --- | --- | --- |
+| <id> | <pair> | open / decided / measured | <who decides, and what they must do> | <the evidence that reopens it> | <path or pending> |
 
 A row with no owner is the deferred conflict: the current design wins by default.
 
@@ -100,9 +106,9 @@ A row with no owner is the deferred conflict: the current design wins by default
 When the user resolves an essential conflict, the losing stance is not deleted.
 Record the sacrifice so the next reviewer sees the cost.
 
-| Decision | Sacrificed stance | What was given up | Why |
-| --- | --- | --- | --- |
-| <decision record path> | `<stance>` | <the objective it lost> | <the user's reason> |
+| Decision | Sacrificed stance | What was given up | Status | Owner document | Reopen when | Why |
+| --- | --- | --- | --- | --- | --- | --- |
+| <decision> | `<stance>` | <the objective it lost> | decided / implemented / verified | <path> | <condition> | <the user's reason> |
 
 ## Evidence
 
@@ -122,19 +128,29 @@ here is a missing stance, not a missing check.
 | Stake | Evidence | Why no stance |
 | --- | --- | --- |
 | <objective> | `<path>#<section>` | <no opponent found / deliberately out of scope> |
+
+## Deferred axes
+
+Axes that were considered and not forged. The reason must be semantic, never a
+stance count. The forge condition is the evidence that would make the axis real.
+
+| Axis | Stakes | Reason | Forge when |
+| --- | --- | --- | --- |
+| <axis> | <stakes> | <missing evidence or owner> | <the evidence that would forge it> |
 ```
 
 ## Registry rules
 
 - The registry is the only file that lists every stance. A stance that is not
   in the table does not exist for reviewers.
-- Every stance appears in at least one opposition row. An unopposed stance is
-  removed or given its opposition.
+- Every stance appears in at least one opposition row. An unopposed stake is a
+  check or an `unrepresented` row, not a stance.
 - `Resolved without escalation` grows over time. That growth is the measure of
   whether the buffer space is being found rather than the tradeoff being
   surrendered.
 - `Decisions that sacrificed a stance` is append-only. Deleting a sacrifice
-  hides the cost of the current design.
+  hides the cost of the current design. Keep `decided`, `implemented`, and
+  `verified` distinct.
 - Keep the tables short. If a table needs more than a screen, the conflict has
   outgrown the registry and belongs in a decision record with a link here.
 - `Unrepresented stakes` is read at every pass. A finding no stance could have

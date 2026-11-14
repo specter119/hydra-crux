@@ -240,6 +240,94 @@ they are harder to notice because a failed pass still produces a report.
 - **Cost:** The status quo wins by default, which is the tiebreak this protocol
   exists to prevent.
 
+### The five-stance quota deferred a real axis
+
+- **Shape:** A candidate axis has evidence on both sides, but the set is already
+  at its working range, so the axis is deferred with "the set already carries
+  five stances". The deferral looks like scope discipline and is a count gate.
+- **Why it looks reasonable:** A smaller set is easier to review, and the
+  deferred axis has not yet caused a visible failure. The cost is invisible
+  because the losing interest has no reviewer.
+- **Check:** For every deferred axis, replace the reason with the missing
+  evidence. If the evidence exists, the axis is not deferred; it is suppressed.
+- **Cost:** A real tradeoff stays unrepresented until a user or a production
+  incident forces it, and the set reports itself complete in the meantime.
+
+### The generated stance with no argument
+
+- **Shape:** A stance skill is generated from a topology row. It has an
+  objective and a payer, but its attacks, evidence, and escalation sections are
+  empty or generic. The file passes the schema and cannot test a design.
+- **Why it looks reasonable:** Generation guarantees consistency and removes
+  hand-editing drift. The output looks like the other stance files.
+- **Check:** Open the generated file and ask whether a reviewer could point at a
+  diff and say "this violates it". If not, the file is a template.
+- **Cost:** A complete-looking set that produces agreement, which is the most
+  expensive kind of noise.
+
+### The orphan check
+
+- **Shape:** A surface has checks and an owner document, but no stance reads it
+  and no unopposed stake is named. It survives because it is useful.
+- **Why it looks reasonable:** The checks are good, and deleting them feels like
+  losing knowledge. The missing owner is invisible in a checklist.
+- **Check:** For every surface, name the stance or the unopposed stake. If
+  neither exists, the check is a finding without a value.
+- **Cost:** A check that cannot lose anything, so it can never tell the project
+  what it is sacrificing.
+
+### The invented payer
+
+- **Shape:** A stance needs a payer to satisfy the topology rule, so the author
+  names a plausible sibling or a generic "users" without evidence that the cost
+  is real. The graph is green and the conflict is manufactured.
+- **Why it looks reasonable:** The sibling does lose something in some scenario,
+  and the rule says every stance needs a payer. The author is being thorough.
+- **Check:** Ask for the recorded decision or observation where the payer
+  actually bore the cost. If there is none, mark it as a latent payer or an
+  unrepresented interest.
+- **Cost:** A fake conflict that makes the set look adversarial while the real
+  tradeoff remains unseen.
+
+### The whole-component route
+
+- **Shape:** The router starts from one changed surface, follows every stance to
+  every opposition, and selects the entire connected component. A local change
+  triggers a full review, so the orchestrator either runs everything or silently
+  trims the list.
+- **Why it looks reasonable:** Closure sounds rigorous, and a connected graph
+  feels like a complete review. The cost is hidden in reviewer time.
+- **Check:** Does the route select an axis because the changed surface declares
+  it contends, or only because a selected stance happens to touch it? The latter
+  belongs under "axes touched but not declared", not in the automatic set.
+- **Cost:** Review fatigue, then silent skipping, then a set nobody trusts.
+
+### The resolved decision that was never implemented
+
+- **Shape:** A decision is recorded as resolved, the registry stops showing it as
+  open, and the code still does the old thing. The next reader treats the
+  decision as settled and does not re-check it.
+- **Why it looks reasonable:** The design question really was answered, and the
+  implementation feels like a separate task. "Resolved" is the only status the
+  ledger has.
+- **Check:** Every decision names a status (`decided`, `decided_not_implemented`,
+  `implemented`, `verified`) and an implementation or test. A route that touches
+  the decision surfaces it.
+- **Cost:** A decision that dominates the document but not the design, which is
+  the exact drift the stance set exists to prevent.
+
+### The no-conflict pass was treated as a failed pass
+
+- **Shape:** A reviewer finds no conflict, and the orchestrator pushes it to
+  produce one because "a review that produces no conflict has not been run
+  properly". The resulting conflict is manufactured.
+- **Why it looks reasonable:** The set exists to find tradeoffs, and a clean
+  result feels like the reviewer did not try.
+- **Check:** A no-conflict result must name the axes checked and why the design
+  already satisfies them. That is a result. Silence is the failure.
+- **Cost:** Reviewers learn to reward conflict production, and the set becomes a
+  generator of noise.
+
 ## How to add an entry
 
 Add a `## Patterns` entry when a pass found a **design or contract deviation from

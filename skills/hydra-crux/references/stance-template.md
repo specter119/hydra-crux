@@ -4,6 +4,9 @@ Copy this file to `.agents/skills/<project>-<stake>-stance/SKILL.md` and replace
 every placeholder. Delete the guidance comments; a stance file is read by a
 reviewer that must not have to distinguish instruction from example.
 
+Do not copy a surface checklist into this file. Link the surface instead. A
+stance owns a value and a payer; a surface owns the checks.
+
 ```markdown
 ---
 name: <project>-<stake>-stance
@@ -29,6 +32,14 @@ particular needs it. Name the failure this project would suffer without it.>
 at a diff and say "this violates it" or "this serves it". No hedging, no
 "balanced approach" language.>
 
+## Surfaces this stance reads
+
+<The surface skills whose checks inform this stance. Link them; do not restate
+their checklists. A stance may read several surfaces, and a surface may be read
+by several stances.>
+
+- [`<project>-<surface>-review`](../<project>-<surface>-review/SKILL.md)
+
 ## Accepts this harm
 
 <The cost this stance knowingly imposes on the objectives it opposes. Be
@@ -44,6 +55,11 @@ sibling in `opposes` with no entry here has no stated cost, so its conflicts
 will read as manufactured.>
 
 - **`<project>-<other>-stance` pays**: <the concrete cost, and how much>
+
+<If the payer has no stance yet, name the person, role, or interest and mark it
+as latent. Do not invent a stance to make the table complete.>
+
+- **`<latent payer>` pays**: <the concrete cost> [latent payer: no stance]
 
 ## Attacks
 
