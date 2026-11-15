@@ -45,12 +45,23 @@ def _default_docs(graph_path: Path) -> Path:
 
 
 def _find_graphs(args: list[str]) -> list[Path]:
-    explicit = [Path(arg) for arg in args if Path(arg).name == "review-graph.toml"]
+    explicit = [
+        Path(arg)
+        for arg in args
+        if Path(arg).suffix == ".toml" and "review-graph" in Path(arg).name
+    ]
     if explicit:
         return sorted({path.resolve() for path in explicit})
     root = Path(__file__).resolve().parents[3]
-    found = sorted(root.glob("**/.agents/review-graph.toml"))
-    return [path.resolve() for path in found]
+    found = list(root.glob("**/.agents/review-graph.toml"))
+    found += list((root / "tests" / "fixtures").glob("*review-graph.toml"))
+    return [path.resolve() for path in sorted(set(found))]
+
+
+def _is_fixture(graph_path: Path) -> bool:
+    """A fixture has no generated outputs and no target-project paths."""
+    root = Path(__file__).resolve().parents[3]
+    return graph_path.resolve().is_relative_to(root / "tests" / "fixtures")
 
 
 def check_graph(
@@ -213,11 +224,12 @@ def main(argv: list[str]) -> int:
 
     errors: list[str] = []
     for graph_path in graph_paths:
+        fixture = _is_fixture(graph_path)
         errors.extend(
             check_graph(
                 graph_path,
-                check_paths=args.check_paths,
-                check_generated=not args.no_generated,
+                check_paths=args.check_paths and not fixture,
+                check_generated=not args.no_generated and not fixture,
             )
         )
     for error in errors:

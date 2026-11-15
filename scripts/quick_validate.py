@@ -12,7 +12,6 @@ import re
 import sys
 from pathlib import Path
 
-
 # Agent Skills spec properties, plus harness extensions this repository relies on.
 #
 # `disable-model-invocation` is not in the upstream allowlist, but it is a real
@@ -54,10 +53,8 @@ def collect_indented_block(lines: list[str], start: int) -> tuple[list[str], int
 
     while index < len(lines):
         line = lines[index]
-        if line.startswith(" ") or line.startswith("\t") or line == "":
-            if line.startswith(" "):
-                block.append(line[1:])
-            elif line.startswith("\t"):
+        if line.startswith((" ", "\t")) or line == "":
+            if line.startswith((" ", "\t")):
                 block.append(line[1:])
             else:
                 block.append("")
@@ -86,7 +83,7 @@ def parse_frontmatter(frontmatter_text: str) -> dict[str, object]:
         if not line.strip():
             index += 1
             continue
-        if line.startswith(" ") or line.startswith("\t"):
+        if line.startswith((" ", "\t")):
             index += 1
             continue
 

@@ -11,9 +11,9 @@ if [ ! -f "$VALIDATE_SCRIPT" ]; then
     exit 1
 fi
 
-# The published meta skills live in `skills/`; the worked examples demonstrate
-# installing a stance set into a target project's `.agents/skills/`. Both are
-# found by walking the tree, so a new directory needs no edit here.
+# The published meta skills live in `skills/`. A stance set lives in
+# `tests/fixtures/`, where it is checked against its graph instead of against
+# the Agent Skills frontmatter schema.
 
 FAILED=0
 FOUND=0
@@ -37,10 +37,7 @@ while IFS= read -r skill_md; do
             FAILED=1
         fi
     done
-done < <(
-    find "$ROOT_DIR/skills" "$ROOT_DIR"/examples/*/.agents/skills \
-        -name SKILL.md -type f 2>/dev/null | sort
-)
+done < <(find "$ROOT_DIR/skills" -name SKILL.md -type f 2>/dev/null | sort)
 
 if [ "$FOUND" -eq 0 ]; then
     echo "No SKILL.md files found"

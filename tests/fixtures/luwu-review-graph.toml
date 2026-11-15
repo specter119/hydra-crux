@@ -1,11 +1,11 @@
-# Luwu review graph: topology only.
+# Luwu review graph: test fixture for topology and routing.
 #
-# The stance and surface prose stays in the hand-authored skills under
-# .agents/skills/. This graph records the relationships, the payers, the
-# decisions a route must re-check, and the stakes nobody represents yet.
+# The stance and surface prose is not shipped. This graph records the
+# relationships, the payers, the decisions a route must re-check, and the stakes
+# nobody represents yet.
 #
-# Paths are relative to the Luwu repository. The example is validated without
-# path existence because it lives in the hydra-crux repository.
+# Paths are relative to the Luwu project. The fixture is validated without path
+# existence because it lives in the hydra-crux repository.
 
 version = 1
 project = "luwu"

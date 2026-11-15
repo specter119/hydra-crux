@@ -61,6 +61,19 @@ Classify each paragraph as a check, an evidence item, a verdict, or a scope
 boundary. A verdict is any sentence that decides a tradeoff or forbids an
 option regardless of another interest.
 
+The deterministic inventory can be produced with:
+
+```bash
+python3 <HYDRA_CRUX_SKILL_PATH>/scripts/concept_audit.py run \
+  --graph .agents/review-graph.toml \
+  --source-dir <OLD_SKILLS_DIR> \
+  --out concept-audit.md
+```
+
+Without a config this makes no network call and reports only deterministic
+candidates. With `[decision]` configured it also triages them. The audit is not a
+gate: use it to build the table and to find orphan checks, then read the prose.
+
 ### 2. Build the graph
 
 Follow the hydra-crux skill. Keep the graph topology-only:
@@ -123,6 +136,10 @@ reads every stance and flags copied checklists, a missing argument, or a stance
 seeded with its author's open findings: current symbols in **Attacks**, an
 unfixed violation in **Bad patterns**, or the defect restated in the Objective.
 Record the findings and fix the prose before the acceptance controls.
+
+Run `concept_audit.py` again after the prose is written. Its
+`verdict-in-surface` and `check-in-stance` candidates narrow the read; they do
+not replace it. The audit never decides whether a stance is good.
 
 Do not add string or regex rules for this to `lint_review_graph.py`. Its object
 is the graph metadata and the generated indexes. It does not read

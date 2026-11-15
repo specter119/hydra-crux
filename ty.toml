@@ -1,0 +1,6 @@
+# Type checking for the bundled scripts.
+#
+# The tests import the scripts by inserting their directory on `sys.path`, which
+# a static checker does not execute. `extra-paths` is the declared equivalent.
+[environment]
+extra-paths = ["skills/hydra-crux/scripts"]

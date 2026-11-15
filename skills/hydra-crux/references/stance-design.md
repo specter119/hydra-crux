@@ -166,8 +166,9 @@ stance. Merge them and say so. Two stances that genuinely contend are not merged
 because the set "already has enough"; that is a count gate, not a design
 decision.
 
-The worked example under `examples/` shows one evidence-driven count. It is not
-a target. A project with three stances is not incomplete.
+The `luwu` fixture graph under `tests/fixtures/` shows one evidence-driven
+count: ten stances for thirteen stakes. It is not a target. A project with
+three stances is not incomplete.
 
 Prefer sharper stances, not fewer stances. A stance set is a lens; a vague lens
 is worse than several sharp ones.

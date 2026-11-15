@@ -51,9 +51,18 @@ hooks = [
 # Markdown linting, after formatting so it only reports what mdformat leaves alone.
 [[repos]]
 repo = "https://github.com/DavidAnson/markdownlint-cli2"
-rev = "v0.24.0"
+rev = "v0.24.1"
 hooks = [
   { id = "markdownlint-cli2", args = ["--fix"], priority = 2 },
+]
+
+# Python linting. The scripts are the only code here, and they are read as much
+# as run, so the rules matter more than the formatting.
+[[repos]]
+repo = "https://github.com/astral-sh/ruff-pre-commit"
+rev = "v0.17.4"
+hooks = [
+  { id = "ruff-check", args = ["--fix"] },
 ]
 
 # Detect secrets and credentials
@@ -70,19 +79,27 @@ hooks = [
 
 # Repository-specific validation.
 # This repo ships its meta skills from `skills/` (they are installed globally, so
-# they are not project-scope skills here) and keeps its worked examples under
-# `examples/`, where a stance set is installed the way a target project would.
+# they are not project-scope skills here). A stance set lives in
+# `tests/fixtures/` so it cannot drift from its graph.
 # The validator is the vendored dependency-free one; it enforces the Agent Skills
 # spec (kebab-case name, description limits, allowed frontmatter keys).
 [[repos]]
 repo = "local"
 hooks = [
   {
+    id = "ty",
+    name = "Type check",
+    entry = "ty check",
+    language = "python",
+    additional_dependencies = ["ty==0.0.100"],
+    files = '\.py$',
+  },
+  {
     id = "validate-skills",
     name = "Validate skills",
     entry = "./scripts/validate-skills.sh",
     language = "script",
-    files = '^(skills|examples/[^/]+/\.agents/skills)/[^/]+/SKILL\.md$',
+    files = '^skills/[^/]+/SKILL\.md$',
     pass_filenames = false,
   },
   {
@@ -92,7 +109,7 @@ hooks = [
     language = "script",
     # The rules read the graph, generated indexes, and paths. They do not read
     # authored stance or surface prose, so they run on any graph or rule change.
-    files = '^(skills|examples/[^/]+/\.agents)/.*\.(md|py|toml)$',
+    files = '^skills/.*\.(md|py|toml)$',
     pass_filenames = true,
   },
 ]

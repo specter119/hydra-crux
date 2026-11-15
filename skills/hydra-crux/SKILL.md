@@ -81,6 +81,12 @@ The semantic checks:
   **Attacks**, an open violation in **Bad patterns**, or the defect restated in
   the Objective makes the stance a confirmation of its author.
 
+`scripts/concept_audit.py` narrows these checks to a candidate list. It is
+opt-in: with no config it makes no network call and reports deterministic
+candidates; with `[decision]` it adds triage. It never decides a semantic check,
+and it has no LLM client: the reading is yours. See
+`references/concept-audit.md`.
+
 Everything else is advisory. Do not add a required field to avoid a
 conversation.
 
@@ -95,8 +101,14 @@ evidence:
   surfaces;
 - an unopposed stake is a check, not a stance.
 
-The worked example under `examples/` shows one evidence-driven count. It is not
-a target. If the evidence supports three, write three.
+A graph where every payer is exactly the opposing stance, and every axis has
+exactly two stances, is a quota signature. It is not an error, but check whether
+the harmed side has an independent interest. `concept_audit.py` reports the
+ratio.
+
+The `luwu` fixture graph under `tests/fixtures/` shows one evidence-driven
+count: ten stances for thirteen stakes. It is not a target. If the evidence
+supports three, write three.
 
 ## Discover latent stakeholders
 

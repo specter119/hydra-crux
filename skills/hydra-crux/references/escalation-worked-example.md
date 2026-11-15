@@ -1,15 +1,14 @@
 # Worked example: one negotiable conflict, one essential conflict
 
-Two conflicts from the same Acme Sync pass (see
-[the example stance set](acme-sync/.agents/skills/acme-stance-registry/SKILL.md)).
-The first is resolved by the agent. The second is escalated. The contrast is
-the point: most conflicts are the first kind, and treating them like the second
-is what makes the user stop reading.
+Two conflicts from the same pass over a hypothetical project. The first is
+resolved by the agent. The second is escalated. The contrast is the point: most
+conflicts are the first kind, and treating them like the second is what makes
+the user stop reading.
 
 ## Negotiable: batch writes
 
-**Reported conflict.** `acme-integrity-stance` requires every record to pass the
-validation gate. `acme-throughput-stance` requires remote calls to be amortized
+**Reported conflict.** `integrity-stance` requires every record to pass the
+validation gate. `throughput-stance` requires remote calls to be amortized
 across a batch. The proposed fix from each reviewer made the other's objective
 worse: per-record validation inside the batch loop looked like it forced a
 remote call per record, and batching looked like it skipped the gate.
@@ -36,11 +35,10 @@ silently erode.
 ## Essential: schema v4 field removal
 
 **Reported conflict.** The remote is removing field `legacy_id` in schema v4.
-`acme-integrity-stance` requires that no record is persisted without full
-validation against the declared schema, so v4 records must be written without
-`legacy_id`. `acme-reversibility-stance` requires that the previous release can
-resume, and the previous release reads `legacy_id` and treats its absence as
-corruption.
+`integrity-stance` requires that no record is persisted without full validation
+against the declared schema, so v4 records must be written without `legacy_id`.
+`reversibility-stance` requires that the previous release can resume, and the
+previous release reads `legacy_id` and treats its absence as corruption.
 
 **Check the four-part test.**
 
@@ -65,7 +63,7 @@ All four hold. The conflict is essential.
 **Escalation, in the required format:**
 
 ```text
-Conflict: C-1 — acme-reversibility-stance vs acme-integrity-stance
+Conflict: C-1 — reversibility-stance vs integrity-stance
 Resource: the shape of records written during the v4 migration window
 
 Stance A says: Every release leaves the system in a state from which the

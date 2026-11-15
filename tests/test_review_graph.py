@@ -7,8 +7,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "skills" / "hydra-crux" / "scripts"))
-LUWU_GRAPH = ROOT / "examples" / "luwu-migration" / ".agents" / "review-graph.toml"
-
 from hydra_graph import (
     check_rendered,
     load_graph,
@@ -223,7 +221,7 @@ class GraphValidationTests(unittest.TestCase):
         self.assertEqual(validate_graph(graph), [])
 
     def test_surface_can_serve_a_stance_and_an_unopposed_stake(self) -> None:
-        graph = load_graph(LUWU_GRAPH)
+        graph = load_graph(ROOT / "tests" / "fixtures" / "luwu-review-graph.toml")
         self.assertEqual(validate_graph(graph), [])
         verifiability = next(
             surface
@@ -387,7 +385,7 @@ class RouteTests(unittest.TestCase):
 
 class LuwuMigrationTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.graph = load_graph(LUWU_GRAPH)
+        self.graph = load_graph(ROOT / "tests" / "fixtures" / "luwu-review-graph.toml")
 
     def test_nine_stances_and_five_axes(self) -> None:
         self.assertEqual(len(self.graph["stance"]), 9)
@@ -460,6 +458,19 @@ class LuwuMigrationTests(unittest.TestCase):
             "luwu-primitive-reuse",
             {surface["id"] for surface in before_write["surfaces"]},
         )
+
+
+class LintDiscoveryTests(unittest.TestCase):
+    def test_fixture_graph_is_discovered(self) -> None:
+        from lint_review_graph import _find_graphs, _is_fixture
+
+        fixture = ROOT / "tests" / "fixtures" / "luwu-review-graph.toml"
+        self.assertIn(fixture, _find_graphs([]))
+        self.assertTrue(_is_fixture(fixture))
+
+    def test_fixture_graph_validates_without_generated_outputs(self) -> None:
+        fixture = ROOT / "tests" / "fixtures" / "luwu-review-graph.toml"
+        self.assertEqual(check_graph(fixture, check_generated=False), [])
 
 
 if __name__ == "__main__":

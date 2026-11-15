@@ -66,15 +66,6 @@ def check(registry: Path) -> list[str]:
     text = registry.read_text(encoding="utf-8")
     if "stance-registry" not in text:
         return problems
-    # A worked example cites a fictional project's paths on purpose. The rule
-    # is about real registries, so an example is skipped and says so.
-    try:
-        rel = registry.resolve().relative_to(root.resolve()).as_posix()
-    except ValueError:
-        rel = registry.as_posix()
-    if rel.startswith("examples/"):
-        print(f"{registry}: skipped, a worked example cites a fictional project")
-        return problems
     # A path that does not exist is a different defect from a path that is
     # ignored, and a branch or a skill name is not a path at all.
     for token in PATH_TOKEN.findall(text):
@@ -123,8 +114,11 @@ def main(argv: list[str]) -> int:
     # registry changed, so walk from each file's own repository root rather
     # than from this skill's location: a stance set installed into another
     # checkout must be checked against that checkout.
-    roots = {repo_root(Path(arg).resolve()) for arg in argv}
-    roots.discard(None)
+    roots = {
+        root
+        for arg in argv
+        if (root := repo_root(Path(arg).resolve())) is not None
+    }
     if not roots:
         roots = {Path(__file__).resolve().parents[4]}
     problems = [

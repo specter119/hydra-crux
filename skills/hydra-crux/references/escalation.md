@@ -181,3 +181,9 @@ tradeoff legible, not to have taste.
 **The manufactured conflict.** Reporting a conflict to appear rigorous when the
 stances actually agree. Check each stance's **Accepts this harm** first: if
 neither stance admits a cost here, there is no conflict.
+
+## Worked pass
+
+[escalation-worked-example.md](escalation-worked-example.md) shows one
+negotiable conflict resolved by finding buffer space and one essential conflict
+escalated with the format above.
