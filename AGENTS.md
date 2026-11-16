@@ -77,9 +77,10 @@ labels; it must not be reused as the semantic classifier for a new skill set.
 The product is a stance set, not a file count. These rules keep it from turning
 into a schema or a quota.
 
-- **No fixed stance count.** The number follows the axes where both sides have
-  a real payer. Report a symmetric payer graph as a quota signature; do not
-  treat it as proof. The reasoning is in `docs/IDEA.md#no-fixed-count`.
+- **No fixed skill count.** Stakes, stances, surfaces, axes, oppositions, and
+  decisions follow the evidence; none has a target number. Report a symmetric
+  payer graph or a perfect surface/stance matching as a quota signature; do not
+  treat either as proof. The reasoning is in `docs/IDEA.md#no-fixed-count`.
 - **No stance without a decision.** A stance needs a recorded decision it would
   sacrifice for. No decision, no stance.
 - **No invented payer.** If the harmed side has no independent interest, record
@@ -142,14 +143,18 @@ bash scripts/lint-skills.sh
 ```
 
 `concept_audit.py` is optional and semantic. It ranks candidates; it does not
-gate a commit. Run it when a migration or an evolution changes the prose:
+gate a commit. Run it when a first build, a migration, or an evolution changes
+the prose:
 
 ```bash
 python3 skills/hydra-crux/scripts/concept_audit.py run \
   --graph .agents/review-graph.toml \
-  --source-dir archive/domain-review \
+  --source AGENTS.md --source README.md --source docs \
   --out concept-audit.md
 ```
+
+For a migration, pass the archived skills instead:
+`--source-dir archive/domain-review`.
 
 Without a config it makes no network call and reports only deterministic
 candidates. With `[decision]` configured it also triages them. It has no LLM

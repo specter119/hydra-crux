@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Semantic concept audit for a hydra-crux migration.
+"""Semantic concept audit for a hydra-crux build, migration, or evolution.
 
 The audit has two layers. Only the first is required:
 
-1. **deterministic** — parse source skills into role-tagged atoms, compare them
+1. **deterministic** — parse source documents into role-tagged atoms, compare them
    with the graph's homes, and flag candidates. No network, no model, no
    third-party dependency.
 2. **decision-model** — if an endpoint that answers typed questions about a
@@ -390,11 +390,11 @@ def strip_frontmatter(text: str) -> tuple[str, int]:
 
 
 def parse_skill(path: Path, root: Path) -> list[Atom]:
-    """Inventory an archived skill by its declared template, then semantically.
+    """Inventory a source document by its declared template, then semantically.
 
     Headings and list markers segment the document. A heading that the archived
-    template declares gets the template's own label; every unknown heading is
-    assigned by the nearest role prototype. The template table is inventory,
+    skill template declares gets the template's own label; every unknown heading
+    is assigned by the nearest role prototype. The template table is inventory,
     not a semantic check of a new skill set.
     """
     text, line_offset = strip_frontmatter(path.read_text(encoding="utf-8"))
@@ -427,6 +427,33 @@ def parse_skill(path: Path, root: Path) -> list[Atom]:
     for (heading, line, unit), role in zip(generic, assign_roles([unit for _, _, unit in generic])):
         if role["role"] != "statement":
             atoms.append(Atom(rel, heading, role["role"], unit, line))
+    return atoms
+
+
+def collect_source_atoms(sources: list[Path], root: Path) -> list[Atom]:
+    """Inventory every source path once.
+
+    A file is one document. A directory contributes its top-level ``*.md``
+    documents and its ``*/SKILL.md`` skill views, so a first build can audit
+    the owner documents that already state requirements instead of waiting for
+    an archived skill layer to exist.
+    """
+    atoms: list[Atom] = []
+    seen: set[Path] = set()
+    for source in sources:
+        if source.is_dir():
+            paths = sorted(source.glob("*.md")) + sorted(source.glob("*/SKILL.md"))
+        elif source.is_file():
+            paths = [source]
+        else:
+            print(f"warning: source not found: {source}", file=sys.stderr)
+            continue
+        for path in paths:
+            resolved = path.resolve()
+            if resolved in seen or not path.is_file():
+                continue
+            seen.add(resolved)
+            atoms.extend(parse_skill(path, root))
     return atoms
 
 
@@ -680,8 +707,20 @@ def graph_findings(graph: dict) -> dict:
             )
 
     referenced = set()
+    readers: dict[str, set[str]] = defaultdict(set)
+    stance_surfaces: dict[str, list[str]] = {}
     for stance in stances:
-        referenced.update(str(x) for x in stance.get("surfaces", []))
+        sid = str(stance.get("id", ""))
+        surfaces = [str(x) for x in stance.get("surfaces", [])]
+        stance_surfaces[sid] = surfaces
+        referenced.update(surfaces)
+        for surface in surfaces:
+            readers[surface].add(sid)
+    one_to_one = sorted(
+        surface
+        for surface, sids in readers.items()
+        if len(sids) == 1 and len(stance_surfaces[next(iter(sids))]) == 1
+    )
     unpaired = [
         str(surface.get("id", ""))
         for surface in graph.get("surface", [])
@@ -698,6 +737,8 @@ def graph_findings(graph: dict) -> dict:
         "stance_count": len(stances),
         "axis_count": len(oppositions),
         "axis_sizes": dict(axis_sizes),
+        "surface_count": len(graph.get("surface", [])),
+        "one_to_one_surfaces": one_to_one,
         "payer_rows": payer_rows,
         "payer_symmetry": sum(1 for row in payer_rows if row["payer_is_opponent"]),
         "payer_total": len(payer_rows),
@@ -904,7 +945,7 @@ def render_report(
             "## Inventory",
             "",
             (
-                f"{len(atoms)} atoms from {len({a.source for a in atoms})} source skills; "
+                f"{len(atoms)} atoms from {len({a.source for a in atoms})} source documents; "
                 f"{len(homes)} homes ({sum(1 for h in homes if h.kind == 'surface')} surfaces, "
                 f"{sum(1 for h in homes if h.kind == 'stance')} stances)."
             ),
@@ -955,7 +996,7 @@ def render_report(
                 "### Home distribution",
                 "",
                 (
-                    "Top-1 home for each source skill. A source that spreads across several "
+                    "Top-1 home for each source document. A document that spreads across several "
                     "homes is evidence for a many-to-many cut, not a 1:1 rename."
                 ),
                 "",
@@ -1022,6 +1063,12 @@ def render_report(
         f"- {findings['payer_symmetry']}/{findings['payer_total']} payers are exactly the "
         "opposing stance. A high ratio is a quota signature, not an error: check whether "
         "the harmed side has an independent interest."
+    )
+    lines.append(
+        f"- {len(findings['one_to_one_surfaces'])}/{findings['surface_count']} surfaces pair "
+        "one-to-one with a stance. A perfect matching is the same quota signature in the "
+        "surface layer: check whether each surface exists because a check has a home, not "
+        "because a stance needed a partner."
     )
     if findings["unpaired_surfaces"]:
         lines.append(
@@ -1156,15 +1203,13 @@ def cmd_run(args: argparse.Namespace) -> int:
     with graph_path.open("rb") as handle:
         graph = tomllib.load(handle)
 
-    source_dirs = [Path(p).resolve() for p in args.source_dir]
-    if not source_dirs:
+    sources = [Path(p).resolve() for p in getattr(args, "source", [])]
+    sources += [Path(p).resolve() for p in getattr(args, "source_dir", [])]
+    if not sources:
         default = root / "archive" / "domain-review"
         if default.exists():
-            source_dirs = [default]
-    atoms: list[Atom] = []
-    for source_dir in source_dirs:
-        for path in sorted(source_dir.glob("*/SKILL.md")):
-            atoms.extend(parse_skill(path, root))
+            sources = [default]
+    atoms = collect_source_atoms(sources, root)
 
     homes = load_homes(graph, root)
     coverage_rows = coverage(atoms, homes, args.threshold)
@@ -1247,7 +1292,14 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--config", default=argparse.SUPPRESS, help="audit config path")
     run.add_argument("--graph", required=True, type=Path)
     run.add_argument("--project-root", type=Path)
-    run.add_argument("--source-dir", action="append", default=[])
+    run.add_argument(
+        "--source",
+        action="append",
+        default=[],
+        type=Path,
+        help="file or directory to inventory; repeatable (default: archive/domain-review)",
+    )
+    run.add_argument("--source-dir", action="append", default=[], type=Path, help=argparse.SUPPRESS)
     run.add_argument("--out", type=Path)
     run.add_argument("--json", type=Path)
     run.add_argument("--threshold", type=float, default=0.08)

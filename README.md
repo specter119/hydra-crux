@@ -130,7 +130,7 @@ design already satisfies them. It must not invent a conflict to prove it ran.
 ## Worked example
 
 [`tests/fixtures/luwu-review-graph.toml`](tests/fixtures/luwu-review-graph.toml)
-is a real stance set for a real project: thirteen stakes, ten stances, five
+is a real stance set for a real project: twelve stakes, nine stances, five
 axes. It is metadata only, and the mechanical rules check it on every commit.
 [`escalation-worked-example.md`](skills/hydra-crux/references/escalation-worked-example.md)
 takes two conflicts from one pass and shows the difference between a negotiable
@@ -139,9 +139,9 @@ conflict and an essential one.
 ## Concept audit (optional)
 
 `concept_audit.py` (in the skill's `scripts/` directory) is a pre-flight for a
-migration or an evolution. It reads the old skills, the graph, and the generated
-prose, and produces a diff list for a human. It is not a gate: it never runs in
-`prek` and never fails a commit.
+first build, a migration, or an evolution. It reads the owner documents or old
+skills, the graph, and the generated prose, and produces a diff list for a
+human. It is not a gate: it never runs in `prek` and never fails a commit.
 
 The commands below use the `HYDRA` variable defined in
 [Use the graph directly](#use-the-graph-directly).

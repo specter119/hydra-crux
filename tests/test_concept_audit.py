@@ -194,6 +194,56 @@ class ConceptAuditTest(unittest.TestCase):
         self.assertEqual(findings["payer_total"], 1)
         self.assertEqual(findings["axis_sizes"], {2: 1})
 
+    def test_graph_findings_reports_one_to_one_surfaces(self) -> None:
+        import tomllib
+
+        graph = tomllib.loads(GRAPH)
+        graph["surface"].append(
+            {"id": "extra-surface", "title": "Extra", "skill": ".agents/skills/extra/SKILL.md"}
+        )
+        graph["stance"].append(
+            {
+                "id": "extra-stance",
+                "title": "Extra",
+                "skill": ".agents/skills/extra-stance/SKILL.md",
+                "surfaces": ["extra-surface"],
+            }
+        )
+        findings = graph_findings(graph)
+        self.assertEqual(findings["surface_count"], 2)
+        self.assertEqual(findings["one_to_one_surfaces"], ["demo-surface", "extra-surface"])
+
+        graph["stance"].append(
+            {
+                "id": "shared-stance",
+                "title": "Shared",
+                "skill": ".agents/skills/shared/SKILL.md",
+                "surfaces": ["demo-surface", "extra-surface"],
+            }
+        )
+        self.assertEqual(graph_findings(graph)["one_to_one_surfaces"], [])
+
+    def test_document_sources_are_inventoried(self) -> None:
+        doc = self.root / "AGENTS.md"
+        doc.write_text(
+            "# Working method\n\n"
+            "## Boundaries\n\n"
+            "- Inspect the journal and the lock path before writing.\n",
+            encoding="utf-8",
+        )
+        docs = self.root / "docs"
+        docs.mkdir()
+        (docs / "NOTES.md").write_text(
+            "# Notes\n\n## Recovery\n\n"
+            "- Inspect the journal and the lock path before writing.\n",
+            encoding="utf-8",
+        )
+        report = self.run_report(source=[str(doc), str(docs)], source_dir=[])
+        self.assertIn("atoms from 2 source documents", report)
+        self.assertIn("| AGENTS.md |", report)
+        self.assertIn("| docs/NOTES.md |", report)
+        self.assertIn("1/1 surfaces pair one-to-one", report)
+
     def test_missing_config_is_deterministic_only(self) -> None:
         config = load_config(self.root / "missing.toml")
         self.assertEqual(config.layers(), ["deterministic"])
@@ -223,6 +273,7 @@ class ConceptAuditTest(unittest.TestCase):
             "config": str(self.root / "missing.toml"),
             "graph": self.root / ".agents" / "review-graph.toml",
             "project_root": self.root,
+            "source": [],
             "source_dir": [str(self.root / "archive" / "domain-review")],
             "out": self.root / "audit.md",
             "json": None,

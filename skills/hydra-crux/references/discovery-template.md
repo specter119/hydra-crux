@@ -44,6 +44,8 @@ local. `Owner` is either the stances that read it or an unopposed stake.
 
 A surface may serve several stances and an unopposed stake at the same time. That
 is not a contradiction; it means the check protects more than one interest.
+A surface is not created to give a stance a partner, and one stance may read
+several surfaces.
 
 ## 4. Unopposed stakes
 
@@ -85,8 +87,8 @@ balanced reviewer finds nothing.
 | -------------------------- | -------------------------------- | -------- |
 | `<project>-<stake>-stance` | <one direction of one objective> | S1 vs S2 |
 
-There is no target count. A stance may appear in several pairs; a pair may have
-two or more sides. The count follows the evidence.
+There is no target count for any kind. A stance may appear in several pairs; a
+pair may have two or more sides. The count follows the evidence.
 
 ## 8. Deferred axes
 

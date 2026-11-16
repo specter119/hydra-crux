@@ -76,11 +76,20 @@ each other; they are not allowed to absorb each other.
 
 ## No fixed count
 
+No kind has a target number: stakes, stances, surfaces, axes, oppositions, and
+decisions all follow the evidence.
+
 The number of stances follows the axes where both sides have a real payer. A
 graph where every payer is exactly the opposing stance, and every axis has
 exactly two stances, is a quota signature. It is not an error, but it is not
 evidence either. The question is not "do we have five?" but "who pays, and who
 is missing?"
+
+The same holds for every other kind. A surface exists because a check needs a
+home and a route, not because a stance needs a partner. A perfect
+surface/stance matching is the quota signature in the other layer; the audit
+reports it, and the question is whether each surface has a check that predates
+the stance.
 
 ## Evidence, not symmetry
 

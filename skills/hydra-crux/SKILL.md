@@ -81,34 +81,39 @@ The semantic checks:
   **Attacks**, an open violation in **Bad patterns**, or the defect restated in
   the Objective makes the stance a confirmation of its author.
 
-`scripts/concept_audit.py` narrows these checks to a candidate list. It is
-opt-in: with no config it makes no network call and reports deterministic
-candidates; with `[decision]` it adds triage. It never decides a semantic check,
-and it has no LLM client: the reading is yours. See
+`scripts/concept_audit.py` narrows these checks to a candidate list. Run it in
+step 7 of a first build, and again whenever a migration or an evolution changes
+the prose. It is opt-in: with no config it makes no network call and reports
+deterministic candidates; with `[decision]` it adds triage. It never decides a
+semantic check, and it has no LLM client: the reading is yours. See
 `references/concept-audit.md`.
 
 Everything else is advisory. Do not add a required field to avoid a
 conversation.
 
-## No stance count
+## No fixed counts
 
-Three stances and nine stances pass the same checks. The count follows the
-evidence:
+No kind has a target number: stakes, stances, surfaces, axes, oppositions, and
+decisions all follow the evidence. A set of three stances and a set of nine
+pass the same checks.
 
 - one stance per **side** of an axis, not one per axis;
 - one stance may participate in several axes;
+- a surface exists because a check needs a home and a route, not because a
+  stance needs a partner;
 - a surface may be read by several stances, and a stance may read several
   surfaces;
 - an unopposed stake is a check, not a stance.
 
 A graph where every payer is exactly the opposing stance, and every axis has
 exactly two stances, is a quota signature. It is not an error, but check whether
-the harmed side has an independent interest. `concept_audit.py` reports the
-ratio.
+the harmed side has an independent interest. A perfect surface/stance matching,
+one surface per stance, is the same signature in the other layer: check whether
+each surface has a check that predates the stance. `concept_audit.py` reports
+both ratios.
 
-The `luwu` fixture graph under `tests/fixtures/` shows one evidence-driven
-count: ten stances for thirteen stakes. It is not a target. If the evidence
-supports three, write three.
+The `luwu` fixture graph under `tests/fixtures/` shows an evidence-driven count.
+It is not a target. If the evidence supports three, write three.
 
 ## Discover latent stakeholders
 
@@ -192,6 +197,10 @@ For every existing `*-review` skill, classify each paragraph:
 A surface may keep its detailed checklist. It must not keep an independent
 adjudication procedure or a claim to decide the tradeoff. That role moves to
 the orchestrator and the stance set.
+
+A first build has no old skills to split. Derive surfaces from the checks the
+project already runs — tests, CI gates, review questions, and requirements the
+owner documents state — not from the stance list.
 
 Every surface file names a **scope boundary**: which paths, phases, and change
 kinds its checks apply to, and which they do not. Write each check against the
@@ -288,7 +297,27 @@ prose. Whether a payer is real, whether a sacrifice is acceptable, whether a
 check is any good, or whether a surface has quietly taken back a verdict are
 semantic review questions, not lint rules.
 
-### 7. Add the entry point
+### 7. Audit the draft against the owner documents
+
+A first build has the same failure as a migration: the graph covers the stances
+its author had in mind and misses a stake the project already wrote down. Run
+the audit once the graph exists:
+
+```sh
+python3 "$HYDRA/scripts/concept_audit.py" run \
+  --graph .agents/review-graph.toml \
+  --source AGENTS.md --source README.md --source docs \
+  --out concept-audit.md
+```
+
+`--source` takes a file or a directory; a directory contributes its `*.md`
+documents and its `*/SKILL.md` views. Read coverage candidates as "the owner
+documents say this and no home covers it", and layer-bleed rows as "this stance
+sentence is a check". The decision model is opt-in, not migration-only:
+configure it once and every build, migration, and evolution can use it. The
+audit never gates the build.
+
+### 8. Add the entry point
 
 Add a short section to the project's `AGENTS.md` (or the document that owns the
 working method) covering only:
@@ -302,7 +331,7 @@ working method) covering only:
 
 Do not copy the protocol into `AGENTS.md`. A second copy drifts.
 
-### 8. Route a real change
+### 9. Route a real change
 
 ```sh
 # HYDRA is set in step 6; set it here if you copied this block alone.

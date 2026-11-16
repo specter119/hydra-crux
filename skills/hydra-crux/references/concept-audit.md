@@ -1,12 +1,12 @@
 # Concept audit
 
-`scripts/concept_audit.py` is an optional pre-flight for a migration or an
-evolution. It reads the old skills, the graph, and the generated prose, and
-produces a diff list for a human.
+`scripts/concept_audit.py` is an optional pre-flight for a first build, a
+migration, or an evolution. It reads the owner documents or old skills, the
+graph, and the generated prose, and produces a diff list for a human.
 
-It is **not a lint**. It reads authored `SKILL.md` prose, so it is not wired
-into `scripts/lint-skills.sh` and it must never fail a commit. Its product is a
-candidate list, not a pass/fail gate.
+It is **not a lint**. It reads authored documents and `SKILL.md` prose, so it is
+not wired into `scripts/lint-skills.sh` and it must never fail a commit. Its
+product is a candidate list, not a pass/fail gate.
 
 ## Two layers, and the agent
 
@@ -81,6 +81,20 @@ python3 scripts/concept_audit.py run \
   --out concept-audit.md --json concept-audit.json
 ```
 
+`--source` takes a file or a directory and may be repeated. A file is one
+document; a directory contributes its top-level `*.md` documents and its
+`*/SKILL.md` views. A first build has no archived skill layer, so point it at
+the documents that already state requirements:
+
+```bash
+python3 scripts/concept_audit.py run \
+  --graph .agents/review-graph.toml \
+  --source AGENTS.md --source README.md --source docs \
+  --out concept-audit.md
+```
+
+`--source-dir` is kept as an alias for a directory source.
+
 `--max-model-calls` bounds cost (default 40). `--threshold` controls the
 lexical coverage floor (default 0.08); the report prints the score distribution
 so the threshold is interpretable rather than magic.
@@ -95,9 +109,10 @@ so the threshold is interpretable rather than magic.
   never consulted. The ranking is a reading order, not a decision. With a model
   layer, the model's role is the classification; without one, treat the
   prototype role as a candidate only.
-- **Graph findings** are metadata only: payer symmetry, axis sizes, unpaired
-  surfaces, unopposed stakes. A high payer-symmetry ratio is a quota signature,
-  not an error.
+- **Graph findings** are metadata only: payer symmetry, axis sizes, one-to-one
+  surface/stance pairs, unpaired surfaces, unopposed stakes. A high
+  payer-symmetry ratio and a perfect surface/stance matching are quota
+  signatures, not errors.
 - **Model triage** is a ranking signal. A `decision-model` answer carries a
   probability from the endpoint. It is not a verdict. Treat the 0.2-0.6 band as
   human-only. The `error` column carries the reason a row failed, so a failed
