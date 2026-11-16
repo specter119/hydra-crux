@@ -128,6 +128,13 @@ python3 <HYDRA_CRUX_SKILL_PATH>/scripts/lint_review_graph.py \
   .agents/review-graph.toml --check-paths
 ```
 
+Do not write the skill's install path into the project's `AGENTS.md` or docs.
+Refer to `hydra_graph.py` and `lint_review_graph.py`, or define a project-local
+`HYDRA` variable; a home-directory path breaks on the next machine.
+
+Add one `[[evidence]]` row for the migration itself: date, pass, the conflict
+the old skills hid, and the effect on the set. Regenerate the registry.
+
 ### 7. Run the prose audit
 
 This is a semantic review, not lint. One reviewer reads every surface view and

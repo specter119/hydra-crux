@@ -56,6 +56,10 @@ explicit decision.
 `phase` keeps prevention steps out of the review route. A `before-write` surface
 is selected with `route --phase before-write`, not by a normal review route.
 
+`checks`, `required_evidence`, and `scope_boundary` are required only when you
+ask the generator for stance or surface views (`generate --views`). A
+topology-only graph can omit them; a graph that generates views cannot.
+
 ## Stances
 
 ```toml
@@ -143,6 +147,36 @@ only if the route selected that axis. Without it, the route falls back to the
 decision's `stances` and `surfaces`, which can pull a shared stance's unrelated
 history into a local change.
 
+## Review log and counterexamples
+
+```toml
+[[evidence]]
+date = "2026-11-16"
+pass = "review: login channel ablation"
+conflict = "the route selected a removed import by keyword"
+effect = "scoped the surface check to the post-change login path"
+doc = "docs/reviews/2026-11-16-login-channel.md" # optional narrative
+skipped = [{ stance = "example-cost-stance", reason = "not touched by this change" }]
+
+[[counterexample]]
+pattern = "removed-dependency-keyword" # short name; full prose in the library
+caught_by = "example-login-review"
+status = "fixed; the check reads the post-change state"
+```
+
+`[[evidence]]` is the completion record for a pass that changed something: code,
+a decision, a stance, or a surface. A `survey` or `draft` pass does not get a
+row. `date` + `pass` is the link key; `pass` must be unique in the graph. `doc`
+links the narrative review doc, and `skipped` records every stance the pass
+dropped, with its reason. The doc is narrative, not a second record.
+
+`[[counterexample]]` holds a project **instance**: a short `pattern` name, the
+`caught_by` surface or stance, and its `status`. The full pattern prose lives in
+[counterexamples.md](counterexamples.md). `caught_by` is a known stance or
+surface id, or `all` / `all stances` for a pattern caught by the whole set. A
+full pattern definition has one home; an instance links to it. Both tables
+render into the registry.
+
 ## Unrepresented and deferred
 
 ```toml
@@ -183,6 +217,10 @@ whether an axis is genuinely contended. Those are semantic review questions for
 - every represented stake is named by a stance, and every unopposed stake is not;
 - every opposition has a recorded sacrifice and both sides;
 - every decision has an owner, status, reopen condition, and route scope;
+- every evidence row has date, pass, conflict, effect, a unique pass, and
+  well-formed skipped rows;
+- every counterexample has pattern, caught_by, and status, with caught_by a
+  known stance/surface id or `all` / `all stances`;
 - generated registry and discovery map match the graph.
 
 It does **not** read stance or surface prose. Whether a payer is real, whether a

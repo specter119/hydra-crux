@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import io
+import json
 import sys
 import tempfile
+import tomllib
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -10,6 +14,7 @@ sys.path.insert(0, str(ROOT / "skills" / "hydra-crux" / "scripts"))
 from hydra_graph import (
     check_rendered,
     load_graph,
+    main,
     render_all,
     route,
     validate_graph,
@@ -171,6 +176,69 @@ class GraphValidationTests(unittest.TestCase):
                 self.assertEqual(len(graph["stance"]), count)
                 self.assertEqual(len(graph["opposition"]), count)
 
+    def test_counterexample_requires_pattern_caught_by_status(self) -> None:
+        graph = __import__("tomllib").loads(ring_graph(3))
+        graph["counterexample"] = [{"pattern": "a pattern", "caught_by": "s0-stance"}]
+        errors = validate_graph(graph)
+        self.assertTrue(any("status" in error for error in errors))
+
+    def test_counterexample_caught_by_known_id_or_all(self) -> None:
+        for catcher in ("s0-stance", "demo-a-review", "all", "all stances"):
+            with self.subTest(catcher=catcher):
+                graph = __import__("tomllib").loads(ring_graph(3))
+                graph["counterexample"] = [
+                    {
+                        "pattern": "a pattern",
+                        "caught_by": catcher,
+                        "status": "fixed",
+                    }
+                ]
+                self.assertEqual(validate_graph(graph), [])
+
+    def test_counterexample_caught_by_unknown_rejected(self) -> None:
+        graph = __import__("tomllib").loads(ring_graph(3))
+        graph["counterexample"] = [
+            {"pattern": "a pattern", "caught_by": "nope", "status": "fixed"}
+        ]
+        errors = validate_graph(graph)
+        self.assertTrue(any("unknown stance or surface" in error for error in errors))
+
+    def test_evidence_requires_fields_and_unique_pass(self) -> None:
+        graph = __import__("tomllib").loads(ring_graph(3))
+        graph["evidence"] = [
+            {
+                "date": "2026-11-16",
+                "pass": "review: one pass",
+                "conflict": "one conflict",
+                "effect": "one fix",
+            }
+        ]
+        self.assertEqual(validate_graph(graph), [])
+        graph["evidence"].append(
+            {
+                "date": "2026-11-16",
+                "pass": "review: one pass",
+                "conflict": "another conflict",
+                "effect": "another fix",
+            }
+        )
+        errors = validate_graph(graph)
+        self.assertTrue(any("duplicate `pass`" in error for error in errors))
+
+    def test_evidence_skipped_rows_require_stance_and_reason(self) -> None:
+        graph = __import__("tomllib").loads(ring_graph(3))
+        graph["evidence"] = [
+            {
+                "date": "2026-11-16",
+                "pass": "review: one pass",
+                "conflict": "one conflict",
+                "effect": "one fix",
+                "skipped": [{"stance": "s0-stance"}],
+            }
+        ]
+        errors = validate_graph(graph)
+        self.assertTrue(any("reason" in error for error in errors))
+
     def test_orphan_surface_fails(self) -> None:
         graph = __import__("tomllib").loads(ring_graph(3))
         graph["surface"].append(
@@ -267,6 +335,64 @@ class GraphValidationTests(unittest.TestCase):
 
 
 class GenerationTests(unittest.TestCase):
+    def test_discovery_links_are_relative_to_docs_out(self) -> None:
+        graph = tomllib.loads(ring_graph(3))
+        graph_path = Path("/tmp/demo/.agents/review-graph.toml")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            out = root / ".agents" / "skills"
+            docs = root / "docs"
+            rendered = render_all(graph, graph_path, out, docs)
+            write_rendered(rendered)
+            map_text = (docs / "stances.md").read_text(encoding="utf-8")
+            self.assertIn(
+                "](../.agents/skills/demo-a-review/SKILL.md)", map_text
+            )
+            target = root / ".agents" / "skills" / "demo-a-review" / "SKILL.md"
+            target.parent.mkdir(parents=True)
+            target.write_text("authored surface\n", encoding="utf-8")
+            self.assertTrue(target.exists())
+
+    def test_discovery_links_use_the_map_directory(self) -> None:
+        graph = tomllib.loads(ring_graph(3))
+        graph_path = Path("/tmp/demo/.agents/review-graph.toml")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            out = root / ".agents" / "skills"
+            rendered = render_all(graph, graph_path, out, out)
+            map_text = rendered[out / "stances.md"]
+            self.assertIn("](./demo-a-review/SKILL.md)", map_text)
+
+            registry_dir = out / "demo-stance-registry"
+            rendered = render_all(graph, graph_path, out, registry_dir)
+            map_text = rendered[registry_dir / "stances.md"]
+            self.assertIn("](../demo-a-review/SKILL.md)", map_text)
+
+    def test_evidence_and_counterexample_tables_render(self) -> None:
+        graph = tomllib.loads(ring_graph(3))
+        graph["evidence"] = [
+            {
+                "date": "2026-11-16",
+                "pass": "review",
+                "conflict": "one conflict",
+                "effect": "one fix",
+            }
+        ]
+        graph["counterexample"] = [
+            {
+                "pattern": "a pattern",
+                "caught_by": "s0-stance",
+                "status": "fixed",
+            }
+        ]
+        graph_path = Path("/tmp/demo/.agents/review-graph.toml")
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            rendered = render_all(graph, graph_path, out)
+            registry = rendered[out / "demo-stance-registry" / "SKILL.md"]
+            self.assertIn("| 2026-11-16 | review | one conflict | one fix |", registry)
+            self.assertIn("| a pattern | s0-stance | fixed |", registry)
+
     def test_registry_is_deterministic_and_stale_detection_works(self) -> None:
         graph = __import__("tomllib").loads(ring_graph(5))
         graph_path = Path("/tmp/demo/.agents/review-graph.toml")
@@ -336,6 +462,68 @@ class RouteTests(unittest.TestCase):
         }
         skipped = {item["stance"] for item in accepted["skipped"]}
         self.assertFalse(executed & skipped)
+
+    def test_explicit_skip_without_budget_is_applied(self) -> None:
+        graph = __import__("tomllib").loads(ring_graph(3))
+        result = route(
+            graph,
+            ["src/a.py"],
+            accept_skip=True,
+            skip_reasons={
+                "s0-stance": "not relevant to this change",
+                "s1-stance": "not relevant to this change",
+            },
+        )
+        self.assertEqual(result["status"], "accepted_with_skips")
+        self.assertEqual(result["stances"], [])
+        self.assertEqual(
+            {item["stance"] for item in result["skipped"]},
+            {"s0-stance", "s1-stance"},
+        )
+        self.assertEqual(
+            [axis["id"] for axis in result["unreviewed_axes"]], ["axis-0-1"]
+        )
+
+    def test_explicit_skip_requires_accept(self) -> None:
+        graph = __import__("tomllib").loads(ring_graph(3))
+        result = route(
+            graph,
+            ["src/a.py"],
+            skip_reasons={
+                "s0-stance": "not relevant",
+                "s1-stance": "not relevant",
+            },
+        )
+        self.assertEqual(result["status"], "needs_grouping")
+
+    def test_skip_rejects_one_side_of_an_axis(self) -> None:
+        graph = __import__("tomllib").loads(ring_graph(3))
+        result = route(
+            graph,
+            ["src/a.py"],
+            accept_skip=True,
+            skip_reasons={"s0-stance": "not relevant"},
+        )
+        self.assertEqual(result["status"], "blocked_by_skip")
+        self.assertTrue(any("axis-0-1" in error for error in result["skip_errors"]))
+
+    def test_skip_rejects_unknown_empty_and_unselected(self) -> None:
+        graph = __import__("tomllib").loads(ring_graph(3))
+        cases = {
+            "unknown": {"nope-stance": "because"},
+            "empty": {"s0-stance": "   "},
+            "unselected": {"s2-stance": "because"},
+        }
+        for name, reasons in cases.items():
+            with self.subTest(name=name):
+                result = route(
+                    graph,
+                    ["src/a.py"],
+                    accept_skip=True,
+                    skip_reasons=reasons,
+                )
+                self.assertEqual(result["status"], "blocked_by_skip")
+                self.assertTrue(result["skip_errors"])
 
     def test_prior_decision_is_routed(self) -> None:
         graph = __import__("tomllib").loads(ring_graph(3))
@@ -471,6 +659,76 @@ class LintDiscoveryTests(unittest.TestCase):
     def test_fixture_graph_validates_without_generated_outputs(self) -> None:
         fixture = ROOT / "tests" / "fixtures" / "luwu-review-graph.toml"
         self.assertEqual(check_graph(fixture, check_generated=False), [])
+
+
+class CliTests(unittest.TestCase):
+    def _graph(self, tmp: str) -> Path:
+        path = Path(tmp) / ".agents" / "review-graph.toml"
+        path.parent.mkdir(parents=True)
+        path.write_text(ring_graph(3), encoding="utf-8")
+        return path
+
+    def test_route_accepts_inline_diff(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            graph_path = self._graph(tmp)
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                code = main(
+                    [
+                        "--graph",
+                        str(graph_path),
+                        "route",
+                        "--changed",
+                        "src/a.py",
+                        "--diff",
+                        "alpha",
+                        "--format",
+                        "json",
+                    ]
+                )
+            self.assertEqual(code, 0)
+            result = json.loads(stdout.getvalue())
+            self.assertIn(
+                "demo-a-review", [surface["id"] for surface in result["surfaces"]]
+            )
+
+    def test_route_reports_missing_diff_file_without_traceback(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            graph_path = self._graph(tmp)
+            stderr = io.StringIO()
+            with redirect_stderr(stderr):
+                code = main(
+                    [
+                        "--graph",
+                        str(graph_path),
+                        "route",
+                        "--diff-file",
+                        str(Path(tmp) / "missing.diff"),
+                    ]
+                )
+            self.assertEqual(code, 2)
+            self.assertIn("cannot read --diff-file", stderr.getvalue())
+
+    def test_skip_rejects_duplicate_stance(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            graph_path = self._graph(tmp)
+            stderr = io.StringIO()
+            with redirect_stderr(stderr):
+                code = main(
+                    [
+                        "--graph",
+                        str(graph_path),
+                        "route",
+                        "--changed",
+                        "src/a.py",
+                        "--skip",
+                        "s0-stance=first",
+                        "--skip",
+                        "s0-stance=second",
+                    ]
+                )
+            self.assertEqual(code, 2)
+            self.assertIn("repeats stance", stderr.getvalue())
 
 
 if __name__ == "__main__":

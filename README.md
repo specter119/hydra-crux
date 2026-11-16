@@ -80,18 +80,24 @@ stance, and escalate only the conflicts that survive a buffer search.
 
 ### Use the graph directly
 
+Set `HYDRA` to the directory containing the installed skill. The examples use
+the global install path; if you installed the skill inside the project, use
+`.agents/skills/hydra-crux` instead.
+
 ```sh
+HYDRA="${HYDRA_CRUX_SKILL:-$HOME/.agents/skills/hydra-crux}"
+
 # Validate the topology and its generated indexes.
-python3 .agents/skills/hydra-crux/scripts/hydra_graph.py \
+python3 "$HYDRA/scripts/hydra_graph.py" \
   --graph .agents/review-graph.toml validate
 
 # Regenerate the registry and discovery map.
-python3 .agents/skills/hydra-crux/scripts/hydra_graph.py \
+python3 "$HYDRA/scripts/hydra_graph.py" \
   --graph .agents/review-graph.toml generate \
   --out .agents/skills --docs-out docs
 
 # Route a change to the surfaces and axes it actually touches.
-python3 .agents/skills/hydra-crux/scripts/hydra_graph.py \
+python3 "$HYDRA/scripts/hydra_graph.py" \
   --graph .agents/review-graph.toml route \
   --changed src/example.py --format markdown
 ```
@@ -99,6 +105,11 @@ python3 .agents/skills/hydra-crux/scripts/hydra_graph.py \
 The route closes over the axes a surface declares in `contends`, not over every
 axis a selected stance happens to touch. It lists prior decisions, open
 conflicts, unclosed axes, and explicit skips. A local change stays local.
+
+The route is the only selector. If it misses a surface or selects the wrong
+one, fix the graph's `paths`, `keywords`, or `contends` and reroute; do not
+hand-pick a subset. `--skip STANCE=REASON` is the only omission mechanism, and
+a skip that leaves one side of an axis active is blocked.
 
 ## Reading a review
 
@@ -127,10 +138,13 @@ conflict and an essential one.
 
 ## Concept audit (optional)
 
-`skills/hydra-crux/scripts/concept_audit.py` is a pre-flight for a migration or
-an evolution. It reads the old skills, the graph, and the generated prose, and
-produces a diff list for a human. It is not a gate: it never runs in `prek` and
-never fails a commit.
+`concept_audit.py` (in the skill's `scripts/` directory) is a pre-flight for a
+migration or an evolution. It reads the old skills, the graph, and the generated
+prose, and produces a diff list for a human. It is not a gate: it never runs in
+`prek` and never fails a commit.
+
+The commands below use the `HYDRA` variable defined in
+[Use the graph directly](#use-the-graph-directly).
 
 The script has no LLM client. The semantic step is you, the agent, reading the
 report. The script gives you two things:
@@ -149,7 +163,7 @@ opinion rather than a restatement.
 ### Configure a decision model
 
 ```bash
-python3 skills/hydra-crux/scripts/concept_audit.py setup \
+python3 "$HYDRA/scripts/concept_audit.py" setup \
   --decision-url https://your-decision-model.example/v1/systemone \
   --decision-model <model-id> \
   --decision-key-env HYDRA_DECISION_KEY
@@ -180,10 +194,10 @@ implementation. The full contract is in
 
 ```bash
 # What is configured, and what is incomplete.
-python3 skills/hydra-crux/scripts/concept_audit.py status
+python3 "$HYDRA/scripts/concept_audit.py" status
 
 # Run it: the report is a reading order, not a verdict list.
-python3 skills/hydra-crux/scripts/concept_audit.py run --graph .agents/review-graph.toml
+python3 "$HYDRA/scripts/concept_audit.py" run --graph .agents/review-graph.toml
 ```
 
 ### With and without a decision model

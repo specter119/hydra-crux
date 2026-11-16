@@ -163,6 +163,15 @@ client by design: the semantic step is the agent reading the report. See
 - Is this a semantic judgment? Use a semantic method, not a regex.
 - Is this a new stance? Name the decision and the payer.
 - Is this a new surface? Name the check and the stance it serves.
+- Does a project doc hardcode the skill's install path? Use a `HYDRA` variable
+  or the command name; a home-directory path breaks on the next machine.
+- Does the generated discovery map link resolve from the directory it is
+  written to? The link prefix is computed from `--docs-out` to `--out`.
+- Is a `record` pass in `[[evidence]]` with its review doc linked by
+  `date` + `pass`, while a `survey` or `draft` stays out of the evidence table?
+- Is the route the only selector? A hand-picked subset is an unrecorded route.
+- Is a counterexample's full pattern in one home, with the project row as an
+  instance link rather than a second copy?
 - Is this a fixture? Put it under `tests/fixtures/`.
 - Is this a stance set? Only `tests/fixtures/` holds one. A worked example is
   prose in `skills/*/references/`, never a stance set.

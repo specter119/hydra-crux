@@ -17,6 +17,21 @@ A pattern that carries one project's file paths cannot be reused by another,
 and a reader cannot tell whether it was generalized or copied. Keep the shape
 here and the instance there, linked by a short name.
 
+## Promotion
+
+When an instance reveals a general shape:
+
+1. Add the pattern to `## Patterns` with the grounded defender argument.
+2. Replace the project row's full prose with the short pattern name.
+3. Keep the instance's `caught_by`, `status`, and evidence.
+4. Delete the project row only when no instance-specific fact remains.
+
+Do not copy the library prose into the project graph. A full pattern definition
+has one home; the instance is a link. `caught_by` is a known surface or stance
+id, or `all` / `all stances` for a pattern caught by the whole set. A
+counterexample with no catcher is a bug report or a toolchain rule, not a
+counterexample.
+
 ## Grounding rules
 
 Every `## Patterns` entry needs:

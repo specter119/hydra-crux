@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
 import tomllib
@@ -353,6 +354,53 @@ def validate_graph(
         _require_text(errors, entry, "stake", "unrepresented")
         _require_text(errors, entry, "where", "unrepresented")
         _require_text(errors, entry, "why", "unrepresented")
+
+    seen_passes: set[str] = set()
+    for row in as_list(graph.get("evidence")):
+        if not isinstance(row, dict):
+            errors.append("evidence: each entry must be a table")
+            continue
+        where = f"evidence `{as_text(row.get('pass')) or '?'}`"
+        for key in ("date", "pass", "conflict", "effect"):
+            _require_text(errors, row, key, where)
+        pass_name = as_text(row.get("pass"))
+        if pass_name:
+            if pass_name in seen_passes:
+                errors.append(f"{where}: duplicate `pass`; date + pass is the link key")
+            seen_passes.add(pass_name)
+        doc = as_text(row.get("doc"))
+        if doc:
+            _check_path(
+                errors,
+                doc,
+                project_root if check_paths else None,
+                where,
+            )
+        for skip in as_list(row.get("skipped")):
+            if not isinstance(skip, dict):
+                errors.append(f"{where}: each `skipped` entry must be a table")
+                continue
+            _require_text(errors, skip, "stance", where)
+            _require_text(errors, skip, "reason", where)
+
+    known_catchers = set(stances) | set(surfaces)
+    for row in as_list(graph.get("counterexample")):
+        if not isinstance(row, dict):
+            errors.append("counterexample: each entry must be a table")
+            continue
+        where = f"counterexample `{as_text(row.get('pattern')) or '?'}`"
+        for key in ("pattern", "caught_by", "status"):
+            _require_text(errors, row, key, where)
+        caught_by = as_text(row.get("caught_by"))
+        if (
+            caught_by
+            and caught_by not in {"all", "all stances"}
+            and caught_by not in known_catchers
+        ):
+            errors.append(
+                f"{where}: `caught_by` names unknown stance or surface "
+                f"`{caught_by}`; use `all` or `all stances` for the whole set"
+            )
 
     for row in as_list(graph.get("resolved")):
         if not isinstance(row, dict):
@@ -894,6 +942,7 @@ def render_discovery(
     graph: dict[str, Any],
     graph_path: Path,
     digest: str,
+    link_prefix: str,
 ) -> str:
     project = as_text(graph.get("project"))
     lines = [
@@ -952,7 +1001,7 @@ def render_discovery(
             else (f"unopposed: `{as_text(surface.get('unopposed_stake'))}`")
         )
         surface_cell = (
-            f"[`{surface_id}`](../{surface_id}/SKILL.md)"
+            f"[`{surface_id}`]({link_prefix}{surface_id}/SKILL.md)"
             if as_text(surface.get("skill"))
             else f"`{surface_id}`"
         )
@@ -1016,7 +1065,11 @@ def render_all(
         graph, graph_path, digest
     )
     if docs_out is not None:
-        rendered[docs_out / "stances.md"] = render_discovery(graph, graph_path, digest)
+        link_prefix = Path(os.path.relpath(out_root, docs_out)).as_posix()
+        link_prefix = "./" if link_prefix == "." else link_prefix.rstrip("/") + "/"
+        rendered[docs_out / "stances.md"] = render_discovery(
+            graph, graph_path, digest, link_prefix=link_prefix
+        )
     return rendered
 
 
@@ -1118,6 +1171,56 @@ def _stance_view(graph: dict[str, Any], stance_id: str) -> dict[str, Any]:
     return {}
 
 
+def _apply_skips(
+    selected_stances: set[str],
+    skip_reasons: dict[str, str] | None,
+    stances: dict[str, Any],
+    oppositions: dict[str, Any],
+    selected_axes: set[str],
+) -> tuple[set[str], list[dict[str, str]], list[dict[str, Any]], list[str]]:
+    """Remove explicitly skipped stances and reject one-sided axis skips."""
+
+    errors: list[str] = []
+    skipped: list[dict[str, str]] = []
+    for stance_id, reason in (skip_reasons or {}).items():
+        if stance_id not in stances:
+            errors.append(f"skip `{stance_id}`: unknown stance")
+            continue
+        if stance_id not in selected_stances:
+            errors.append(f"skip `{stance_id}`: not selected by the route")
+            continue
+        if not reason.strip():
+            errors.append(f"skip `{stance_id}`: reason is empty")
+            continue
+        skipped.append({"stance": stance_id, "reason": reason.strip()})
+
+    skipped_ids = {item["stance"] for item in skipped}
+    active = selected_stances - skipped_ids
+    unreviewed_axes: list[dict[str, Any]] = []
+    for axis in sorted(selected_axes):
+        opposition = oppositions.get(axis, {})
+        members = {as_text(item) for item in as_list(opposition.get("stances"))}
+        active_members = members & active
+        skipped_members = members & skipped_ids
+        if not skipped_members:
+            continue
+        if active_members:
+            errors.append(
+                f"skip `{', '.join(sorted(skipped_members))}`: axis `{axis}` "
+                f"still has active stance(s) {', '.join(sorted(active_members))}; "
+                "skip the whole axis or keep both sides"
+            )
+        else:
+            unreviewed_axes.append(
+                {
+                    "id": axis,
+                    "stances": sorted(members),
+                    "reason": "all selected stances on this axis were skipped",
+                }
+            )
+    return active, skipped, unreviewed_axes, errors
+
+
 def route(
     graph: dict[str, Any],
     changed_files: list[str],
@@ -1189,8 +1292,33 @@ def route(
             ):
                 closure_surfaces.setdefault(surface_id, []).append(stance_id)
 
+    active_stances, skipped, unreviewed_axes, skip_errors = _apply_skips(
+        selected_stances, skip_reasons, stances, oppositions, selected_axes
+    )
+    closure_added = [
+        item for item in closure_added if item["stance"] in active_stances
+    ]
+    closure_surfaces = {
+        surface_id: [stance for stance in because if stance in active_stances]
+        for surface_id, because in closure_surfaces.items()
+    }
+    closure_surfaces = {
+        surface_id: because
+        for surface_id, because in closure_surfaces.items()
+        if because
+    }
+    active_axes = {
+        axis
+        for axis in selected_axes
+        if {
+            as_text(item)
+            for item in as_list(oppositions.get(axis, {}).get("stances"))
+        }
+        & active_stances
+    }
+
     triggered_oppositions = []
-    for opposition_id in sorted(selected_axes):
+    for opposition_id in sorted(active_axes):
         opposition = oppositions.get(opposition_id)
         if opposition is None:
             continue
@@ -1207,7 +1335,7 @@ def route(
     unclosed_axes = []
     for axis, opposition in oppositions.items():
         members = {as_text(item) for item in as_list(opposition.get("stances"))}
-        if members & selected_stances and axis not in selected_axes:
+        if members & active_stances and axis not in selected_axes:
             unclosed_axes.append(
                 {
                     "id": axis,
@@ -1220,11 +1348,11 @@ def route(
     def touches(row: dict[str, Any]) -> bool:
         row_axes = {as_text(item) for item in as_list(row.get("axes"))}
         if row_axes:
-            return bool(row_axes & selected_axes)
+            return bool(row_axes & active_axes)
         row_stances = {as_text(item) for item in as_list(row.get("stances"))}
         row_surfaces = {as_text(item) for item in as_list(row.get("surfaces"))}
         return bool(
-            row_stances & selected_stances or row_surfaces & set(selected_surfaces)
+            row_stances & active_stances or row_surfaces & set(selected_surfaces)
         )
 
     prior_decisions = [
@@ -1276,21 +1404,23 @@ def route(
             unopposed.append({"surface": surface_id, "stake": stake})
 
     groups: list[dict[str, Any]] = []
-    skipped: list[dict[str, str]] = []
+    explicit_skipped = {item["stance"] for item in skipped}
     status = "ok"
-    if budget is not None and len(selected_stances) > budget:
+    if skip_errors:
+        status = "blocked_by_skip"
+    elif budget is not None and len(active_stances) > budget:
         grouped: dict[str, list[str]] = {}
         assigned: set[str] = set()
         for opposition_id, opposition in sorted(oppositions.items()):
             members = [
                 as_text(item)
                 for item in as_list(opposition.get("stances"))
-                if as_text(item) in selected_stances and as_text(item) not in assigned
+                if as_text(item) in active_stances and as_text(item) not in assigned
             ]
             if members:
                 grouped[opposition_id] = members
                 assigned.update(members)
-        unpaired = sorted(selected_stances - assigned)
+        unpaired = sorted(active_stances - assigned)
         if unpaired:
             grouped["unpaired"] = unpaired
         ordered = sorted(
@@ -1315,16 +1445,21 @@ def route(
                         }
                     )
         missing_reasons = [
-            item for item in skipped if item["stance"] not in (skip_reasons or {})
+            item
+            for item in skipped
+            if item["stance"] not in explicit_skipped
+            and item["stance"] not in (skip_reasons or {})
         ]
         if skipped and (not accept_skip or missing_reasons):
             status = "needs_grouping"
         elif skipped:
             status = "accepted_with_skips"
     else:
-        groups.append({"group": "all", "stances": sorted(selected_stances)})
+        groups.append({"group": "all", "stances": sorted(active_stances)})
+        if skipped:
+            status = "accepted_with_skips" if accept_skip else "needs_grouping"
 
-    if not selected_surfaces:
+    if not selected_surfaces and status != "blocked_by_skip":
         status = "no_match"
 
     return {
@@ -1348,19 +1483,22 @@ def route(
                 "objective": as_text(stances[stance_id].get("objective")),
                 "axes": axes.get(stance_id, []),
             }
-            for stance_id in sorted(selected_stances)
+            for stance_id in sorted(active_stances)
         ],
         "oppositions": triggered_oppositions,
         "unclosed_axes": unclosed_axes,
+        "unreviewed_axes": unreviewed_axes,
         "prior_decisions": prior_decisions,
         "open_conflicts": open_conflicts,
         "unopposed": unopposed,
         "closure_added": closure_added,
         "groups": groups,
         "skipped": skipped,
+        "skip_errors": skip_errors,
         "notes": [
             "Closure adds opponents, not a fixed count.",
             "A skipped stance must be named with a reason; silence is not a skip.",
+            "A skipped axis is unreviewed; it is not a pass on that axis.",
         ],
     }
 
@@ -1398,6 +1536,10 @@ def render_route_markdown(result: dict[str, Any]) -> str:
     if result["unclosed_axes"]:
         lines.extend(["", "## Axes touched but not declared", ""])
         for axis in result["unclosed_axes"]:
+            lines.append(f"- `{axis['id']}` — {axis['reason']}")
+    if result.get("unreviewed_axes"):
+        lines.extend(["", "## Axes left unreviewed by skips", ""])
+        for axis in result["unreviewed_axes"]:
             lines.append(f"- `{axis['id']}` — {axis['reason']}")
     if result["prior_decisions"]:
         lines.extend(["", "## Decisions this change must re-check", ""])
@@ -1440,6 +1582,10 @@ def render_route_markdown(result: dict[str, Any]) -> str:
         lines.extend(["", "## Skipped", ""])
         for item in result["skipped"]:
             lines.append(f"- `{item['stance']}` — {item['reason']}")
+    if result.get("skip_errors"):
+        lines.extend(["", "## Blocked skips", ""])
+        for error in result["skip_errors"]:
+            lines.append(f"- {error}")
     lines.append("")
     return "\n".join(lines)
 
@@ -1458,11 +1604,11 @@ def _project_root(graph_path: Path) -> Path:
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
     parser.add_argument("--graph", type=Path, help="path to review-graph.toml")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    validate = sub.add_parser("validate", help="validate a graph")
+    validate = sub.add_parser("validate", help="validate a graph", allow_abbrev=False)
     validate.add_argument("--project-root", type=Path)
     validate.add_argument("--check-paths", action="store_true")
     validate.add_argument("--check-generated", action="store_true")
@@ -1472,7 +1618,7 @@ def main(argv: list[str]) -> int:
         "--views", action="store_true", help="also check generated stance/surface views"
     )
 
-    generate = sub.add_parser("generate", help="write generated views")
+    generate = sub.add_parser("generate", help="write generated views", allow_abbrev=False)
     generate.add_argument("--out", type=Path, required=True)
     generate.add_argument("--docs-out", type=Path)
     generate.add_argument("--check", action="store_true")
@@ -1480,9 +1626,14 @@ def main(argv: list[str]) -> int:
         "--views", action="store_true", help="also write stance/surface views"
     )
 
-    route_parser = sub.add_parser("route", help="select a review route")
+    route_parser = sub.add_parser("route", help="select a review route", allow_abbrev=False)
     route_parser.add_argument("--changed", action="append", default=[])
     route_parser.add_argument("--diff-file", type=Path)
+    route_parser.add_argument(
+        "--diff",
+        metavar="TEXT",
+        help="inline diff text; use --diff-file for a path",
+    )
     route_parser.add_argument("--all", action="store_true")
     route_parser.add_argument(
         "--phase",
@@ -1553,16 +1704,31 @@ def main(argv: list[str]) -> int:
         return 0
 
     if args.command == "route":
-        diff_text = ""
+        if args.diff and args.diff_file:
+            print("use either --diff or --diff-file, not both", file=sys.stderr)
+            return 2
+        diff_text = args.diff or ""
         if args.diff_file:
-            diff_text = args.diff_file.read_text(encoding="utf-8")
+            try:
+                diff_text = args.diff_file.read_text(encoding="utf-8")
+            except OSError as exc:
+                print(
+                    f"cannot read --diff-file {args.diff_file}: {exc}",
+                    file=sys.stderr,
+                )
+                return 2
         skip_reasons: dict[str, str] = {}
         for item in args.skip:
             stance_id, _, reason = item.partition("=")
+            stance_id = stance_id.strip()
+            reason = reason.strip()
             if not stance_id or not reason:
                 print(f"--skip must be STANCE=REASON, got: {item}", file=sys.stderr)
                 return 2
-            skip_reasons[stance_id.strip()] = reason.strip()
+            if stance_id in skip_reasons:
+                print(f"--skip repeats stance `{stance_id}`", file=sys.stderr)
+                return 2
+            skip_reasons[stance_id] = reason
         result = route(
             graph,
             changed_files=args.changed,

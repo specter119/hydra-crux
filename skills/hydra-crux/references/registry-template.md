@@ -3,7 +3,9 @@
 The registry is generated from `.agents/review-graph.toml`:
 
 ```sh
-python3 .agents/skills/hydra-crux/scripts/hydra_graph.py \
+HYDRA="${HYDRA_CRUX_SKILL:-$HOME/.agents/skills/hydra-crux}"
+
+python3 "$HYDRA/scripts/hydra_graph.py" \
   --graph .agents/review-graph.toml generate \
   --out .agents/skills --docs-out docs
 ```
@@ -11,6 +13,11 @@ python3 .agents/skills/hydra-crux/scripts/hydra_graph.py \
 Do not hand-edit the generated registry. Edit the graph, then regenerate. The
 template below shows the shape the generator produces; it is not a second source
 of truth.
+
+`docs/stances.md` is generated too. Its links are computed from `--docs-out` to
+`--out`, so they resolve from the directory where the map is written. Do not
+replace it with a hand-written guide; put narrative in `AGENTS.md` and link to
+the generated map.
 
 ```markdown
 ---
@@ -112,12 +119,25 @@ Record the sacrifice so the next reviewer sees the cost.
 
 ## Evidence
 
-Proof that the set is alive. Not a log of every review — only passes that
-changed something.
+Proof that the set is alive. Not a log of every review — only `record` passes
+that changed something. A `survey` or `draft` pass does not appear here. The
+review doc links to the row by `date` + `pass`; the graph row also carries the
+optional `doc` and `skipped` fields, which this navigation table does not show.
 
 | Date | Pass | Conflict found | Effect on design or set |
 | --- | --- | --- | --- |
 | <date> | <scope> | <pair and crux> | <merged / escalated / stance edited / stance retired> |
+
+## Counterexamples harvested
+
+Project-specific instances the pass caught. The `Pattern` column is a short
+name, not the full prose; the general library is
+[counterexamples.md](counterexamples.md). A full pattern definition has one
+home; this table links to it.
+
+| Pattern (short name) | Caught by | Status |
+| --- | --- | --- |
+| <the shape that looked reasonable> | `<surface or stance>` | <fixed / survey / open> |
 
 ## Unrepresented stakes
 

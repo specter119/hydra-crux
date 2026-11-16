@@ -34,7 +34,9 @@ the stances, the oppositions, the contract surfaces, and the conflicts already
 resolved. Then route the target:
 
 ```sh
-python3 .agents/skills/hydra-crux/scripts/hydra_graph.py \
+HYDRA="${HYDRA_CRUX_SKILL:-$HOME/.agents/skills/hydra-crux}"
+
+python3 "$HYDRA/scripts/hydra_graph.py" \
   --graph .agents/review-graph.toml route \
   --changed <path> --format markdown
 ```
@@ -42,7 +44,17 @@ python3 .agents/skills/hydra-crux/scripts/hydra_graph.py \
 The route is the binding, not a suggestion. It selects surfaces by path or
 keyword, adds both sides of the axes those surfaces declare in `contends`, and
 lists the decisions the change must re-check. Do not manually assemble a
-cross-product of every stance.
+cross-product of every stance. The binding is about what the pass must inspect,
+not what it must conclude: a path match is a direct hit, while a keyword match
+only says the change mentions the surface's subject. Read the post-change state
+before treating a keyword hit as a violation.
+
+Do not hand-pick a subset either. If the route misses a surface or selects the
+wrong one, fix the graph's `paths`, `keywords`, or `contends` and reroute.
+Diagnosis is allowed: read the diff, compare the route's selection with the
+touched code. But do not carry a hand-picked stance into the brief. If you
+cannot change the graph, stop and report a route defect; a manual selection is
+an unrecorded route.
 
 Owner-document changes are the exception to path routing. If the target changes
 `AGENTS.md`, `README.md`, `docs/product.md`, `docs/design.md`, or
@@ -66,17 +78,23 @@ Then fix the pass's scope and record it:
 - **Prior decisions** — the route's `prior_decisions` and `open_conflicts`. A
   reviewer that re-raises a settled conflict is producing noise; tell it so in
   the brief.
-- **Skipped stances** — every `--skip STANCE=REASON`. A pass with an unexplained
-  skip is not bound.
+- **Skipped stances** — every `--skip STANCE=REASON`. `--skip` is the only way
+  to drop a selected stance, and the reason is mandatory. If a skip removes one
+  side of a selected opposition, skip the whole axis and record it as
+  unreviewed, or keep both sides; a one-sided axis is a blocked route.
+- **Reviewer list** — every selected stance is either briefed or explicitly
+  skipped. A partial brief without a skip is a failed pass; do not collect
+  findings from it.
 
 A pass is bound when the target revision, the reviewer list, and the
 constraining prior decisions are written down. Do not start reviewers before
 this, or they will each invent their own scope.
 
-Record the binding in a tracked path — the project's decision records or the
-graph's `[[evidence]]` table — before the first reviewer starts. A scope and an
-adjudication in a scratch or ignored directory are gone for the next reader,
-who then re-litigates a decision whose reasoning nobody can find.
+Record the binding in a tracked path — the review doc draft or the project's
+decision records — before the first reviewer starts. Do not add an
+`[[evidence]]` row yet: evidence is a completion record, not a reservation. A
+scope and an adjudication in a scratch or ignored directory are gone for the
+next reader, who then re-litigates a decision whose reasoning nobody can find.
 
 ## 2. Brief each reviewer
 
@@ -199,6 +217,10 @@ Then classify. A conflict may be called **essential** only when both stances
 have a written position on it. A conflict the opponent does not contest becomes
 an **agreement** or an **independent** finding, not an escalation.
 
+Only candidate conflicts need both sides. An agreement or an independent finding
+does not need a contest. A one-sided contest is a finding, not a classification:
+it cannot become `merged`, `incompatible`, or `unresolved`.
+
 This is the one place reviewers see each other's material, and it is bounded on
 purpose: the opponent sees the proposal, never the argument. Discovery stays
 independent; only the contest is shared.
@@ -229,6 +251,10 @@ side. Do not skip to a resolution because one option is easier.
   runs it, say what happens if nobody does. The conflict stays open and the
   current design keeps the status quo rather than being declared correct.
 
+`Merged` needs both stances' confirmations. `Incompatible` needs both stances'
+written positions. `Unresolved` needs both stances' positions on the evidence.
+If one side is missing, the conflict is not classified yet.
+
 An escalation is complete only when it presents:
 
 - the two objectives, each stated in its own strongest form;
@@ -250,8 +276,17 @@ under an "escalated" heading in a document has not been escalated.
 
 ## 5. Record
 
-Write the pass into the graph, the generated registry, and the project's
-decision records.
+A pass ends in one of three states. Do not collapse them:
+
+- **draft** — bound, not finished. The binding lives in the review doc draft or
+  a decision record. No `[[evidence]]` row and no conclusion.
+- **survey** — finished, changed nothing. The review doc says `survey` and names
+  the axes it checked. No `[[evidence]]` row.
+- **record** — finished and changed something. Add an `[[evidence]]` row; the
+  review doc links to it by `date` + `pass`.
+
+Write the pass into the graph and the project's decision records, then
+regenerate the registry. The registry is generated; do not edit it by hand.
 
 - Merged buffers go to the graph's `[[resolved]]` table, with the evidence that
   **both** stances accept the design — a buffer the contest did not confirm is
@@ -263,8 +298,20 @@ decision records.
   objective, what was given up, the owner document, the status
   (`decided`, `decided_not_implemented`, `implemented`, `verified`), and the
   `reopen_when` condition.
-- Add one row to the graph's `[[evidence]]` table for the pass, only if it
-  changed something.
+- A `record` pass goes to the graph's `[[evidence]]` table: date, pass, the
+  conflict or crux, what changed, and optional `doc` and `skipped` fields. A
+  `survey` or `draft` does not get a row. Do not add an evidence row to make a
+  draft look finished.
+- The review doc is narrative, not a second record. It links to the evidence row
+  by `date` + `pass`; a doc without a row is a survey or a draft, not
+  automatically incomplete.
+- Project-specific counterexample instances go to the graph's
+  `[[counterexample]]` table, with the surface or stance that caught them and
+  their status. The full pattern prose lives in the library; see step 6.
+
+Do not use `--no-generated` to hide a discovery map you edited by hand. The
+flag is for a project that has not adopted generated indexes; a stale map is a
+generator or output-path problem, not a lint exception.
 
 Everything the graph and registry cite must survive a fresh clone. Check the project's
 version-control ignore rules before writing a path into the ledger: run output
@@ -336,10 +383,19 @@ Then **edit the stance file**, not only the library. A pattern added to the
 library but not to the catching stance's **Attacks** is a note nobody reads at
 the moment it would help. Change the attack list to describe the generalized
 shape, and record in the stance's own history that the pass added it. If the
-pattern is project-specific, it belongs in the registry's counterexamples table;
+pattern is project-specific, it belongs in the graph's `[[counterexample]]`
+table, which regenerates into the registry's counterexamples table;
 if it is project-neutral, in the library's `## Patterns` section — never a
 project's paths in the general file. A pattern a lint rule or a test could
 catch goes to the project's toolchain instead.
+
+The two tiers are **Pattern** (the full, project-neutral shape) and **Instance**
+(the project's paths, evidence, and caught-by). They are not two copies of the
+same fact. A full pattern definition has one home; a project instance links to
+it by a short name. To promote an instance, add the pattern to the library,
+replace the project row's full prose with the short name, and keep the
+instance's `caught_by`, `status`, and evidence. Delete the project row only when
+it has no instance-specific facts left.
 
 Do not harvest bugs, missing tests, or anything that only looks wrong in
 hindsight. A counterexample library full of obvious mistakes is worse than

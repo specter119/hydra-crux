@@ -23,6 +23,7 @@ every commit through `scripts/lint-skills.sh`.
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
@@ -30,6 +31,16 @@ import tempfile
 from pathlib import Path
 
 REGISTRY_GLOB = "*-stance-registry/SKILL.md"
+# prek exports these for the hook. `git -C root` must discover `root`, not the
+# hook's repository, or the self-test checks the wrong tree.
+GIT_ENV_VARS = {
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_INDEX_FILE",
+    "GIT_OBJECT_DIRECTORY",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_COMMON_DIR",
+}
 # A repo-relative path written in backticks: at least one slash, no scheme, no
 # placeholder angle brackets, no glob.
 PATH_TOKEN = re.compile(r"`([A-Za-z0-9_.][A-Za-z0-9_./-]*/[A-Za-z0-9_./-]*)`")
@@ -43,11 +54,13 @@ def repo_root(path: Path) -> Path | None:
 
 
 def git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    env = {key: value for key, value in os.environ.items() if key not in GIT_ENV_VARS}
     return subprocess.run(
         ["git", "-C", str(root), *args],
         capture_output=True,
         text=True,
         check=False,
+        env=env,
     )
 
 

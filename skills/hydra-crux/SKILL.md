@@ -193,6 +193,13 @@ A surface may keep its detailed checklist. It must not keep an independent
 adjudication procedure or a claim to decide the tradeoff. That role moves to
 the orchestrator and the stance set.
 
+Every surface file names a **scope boundary**: which paths, phases, and change
+kinds its checks apply to, and which they do not. Write each check against the
+post-change state inside that boundary. A check that says "no X" means "no X in
+the scoped path", not "the diff never mentions X". A check without a boundary
+applies to every change that mentions its subject, and becomes a hard block on
+a legitimate removal or rename.
+
 ### 3. Form oppositions only where a sacrifice is recorded
 
 An opposition row needs:
@@ -245,6 +252,10 @@ Create `.agents/review-graph.toml`. Keep it topology-only:
 - `[[opposition]]` — id, stances, contended resource, recorded sacrifice, state;
 - `[[resolved]]`, `[[open_conflict]]`, `[[sacrifice]]` — decisions with owner
   document, status, reopen condition, and the surfaces/stances they constrain;
+- `[[evidence]]` — one row per pass that changed something: date, pass,
+  conflict, effect;
+- `[[counterexample]]` — a project-specific pattern the pass caught, the
+  surface or stance that caught it, and its status;
 - `[[unrepresented]]` — a real interest with no stance, and why;
 - `[[deferred_axis]]` — only with a semantic reason and a forge condition.
 
@@ -254,11 +265,17 @@ up as an unclosed axis instead of silently expanding the review.
 
 ### 6. Validate and generate indexes
 
+Set `HYDRA` to the directory containing the installed skill. The examples use
+the global install path; if the skill is vendored into the project, use
+`.agents/skills/hydra-crux` instead.
+
 ```sh
-python3 .agents/skills/hydra-crux/scripts/hydra_graph.py \
+HYDRA="${HYDRA_CRUX_SKILL:-$HOME/.agents/skills/hydra-crux}"
+
+python3 "$HYDRA/scripts/hydra_graph.py" \
   --graph .agents/review-graph.toml validate
 
-python3 .agents/skills/hydra-crux/scripts/hydra_graph.py \
+python3 "$HYDRA/scripts/hydra_graph.py" \
   --graph .agents/review-graph.toml generate \
   --out .agents/skills --docs-out docs
 ```
@@ -288,7 +305,8 @@ Do not copy the protocol into `AGENTS.md`. A second copy drifts.
 ### 8. Route a real change
 
 ```sh
-python3 .agents/skills/hydra-crux/scripts/hydra_graph.py \
+# HYDRA is set in step 6; set it here if you copied this block alone.
+python3 "$HYDRA/scripts/hydra_graph.py" \
   --graph .agents/review-graph.toml route \
   --changed src/example.py --format markdown
 ```
@@ -300,18 +318,39 @@ The route returns:
 - closure surfaces that contend the same axes;
 - axes touched by a selected stance but not declared by any selected surface;
 - prior decisions and open conflicts the change must re-check;
-- unopposed checks and explicit skips.
+- unopposed checks, explicit skips, and axes left unreviewed by skips.
+
+The route command is the only selector: `--changed`, `--diff`, `--all`,
+`--budget`, and `--skip`. A hand-picked subset or a hand-built cross-product is
+not a route. If the route misses a surface or selects the wrong one, fix the
+graph's `paths`, `keywords`, or `contends` and reroute; if you cannot change the
+graph, stop and report a route defect.
+
+A path match is a direct hit. A keyword match is a lexical candidate: it says
+the change mentions the surface's subject, not that the change violates the
+check. Read the post-change state. Deleting a banned token satisfies a check
+that bans it; the keyword hit alone is not a finding.
 
 For a prevention step such as primitive reuse, run
 `route --phase before-write`; it is not part of the normal review route.
 
 If the route is too broad, do not silently drop stances. Use `--budget` to get
 disjoint batches, and `--skip STANCE=REASON` for anything that will not run.
+`--skip` is the only way to drop a selected stance, and the reason is mandatory.
+If a skip removes one side of a selected opposition, skip the whole axis and
+record it as unreviewed, or keep both sides; a one-sided axis is
+`blocked_by_skip`. `accepted_with_skips` requires `--accept-skip`;
 `needs_grouping` means the pass has not been bound yet.
 
 Run a **control** before declaring the topology installed: take a real past
 change that traded one objective against another and check that the route
 selects both sides. A topology that has never fired is a hypothesis.
+
+Run a **negative control** too: a legitimate change that removes or renames the
+subject of a surface check. If the route selects the surface and the check
+fires on the removal itself, the check is reading the diff instead of the
+post-change state. Fix the check or its scope boundary before installing the
+topology.
 
 ## Decisions that bind design
 
@@ -366,8 +405,8 @@ migration act, not a runtime rule; the default skill does not delete anything.
 ## Evolve an existing topology
 
 Run this when `.agents/review-graph.toml` already exists. The graph is the
-current topology, not a draft. Read it, the registry, the review log, and the
-open decisions before editing.
+current topology, not a draft. Read it, the registry, the graph's `[[evidence]]`
+log, and the open decisions before editing.
 
 1. Find the evidence for the change: a new incident, a rejected alternative, a
    manual rescue, a new owner document, or a decision that was implemented or
@@ -395,8 +434,10 @@ open decisions before editing.
 6. If an owner document changed, re-check every stake whose `evidence` cites the
    changed document. A contract change that selects no stance is a routing gap,
    not a clean review.
-7. Record the change in the registry's review log: date, scope, pair or crux,
-   outcome, and what was retired or re-opened.
+7. Record the change in the graph's `[[evidence]]` table: date, scope, pair or
+   crux, outcome, and what was retired or re-opened. Add project-specific
+   patterns to `[[counterexample]]`. Regenerate the registry; do not edit the
+   generated file.
 
 ## Formalism is the failure mode
 
