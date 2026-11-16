@@ -315,7 +315,7 @@ class ConceptAuditTest(unittest.TestCase):
     def test_status_redacts_url_credentials(self) -> None:
         config = self.root / "creds.toml"
         config.write_text(
-            '[decision]\nurl = "http://user:pass@127.0.0.1:1/v1?token=abc"\nmodel = "m"\n',
+            '[decision]\nurl = "http://user:pass@127.0.0.1:1/v1?token=abc"\nmodel = "m"\n',  # pragma: allowlist secret
             encoding="utf-8",
         )
         with redirect_stdout(io.StringIO()) as out:
@@ -453,7 +453,7 @@ class ConceptAuditTest(unittest.TestCase):
         try:
             config = self.root / "creds.toml"
             config.write_text(
-                f'[decision]\nurl = "http://user:pw@127.0.0.1:{server.server_port}/v1"\n'
+                f'[decision]\nurl = "http://user:pw@127.0.0.1:{server.server_port}/v1"\n'  # pragma: allowlist secret
                 'model = "m"\n',
                 encoding="utf-8",
             )

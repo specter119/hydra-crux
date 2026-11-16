@@ -60,7 +60,7 @@ hooks = [
 # as run, so the rules matter more than the formatting.
 [[repos]]
 repo = "https://github.com/astral-sh/ruff-pre-commit"
-rev = "v0.17.4"
+rev = "v0.17.5"
 hooks = [
   { id = "ruff-check", args = ["--fix"] },
 ]
