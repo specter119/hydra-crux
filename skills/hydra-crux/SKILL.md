@@ -21,72 +21,52 @@ A project has two kinds of review knowledge, and they fail differently:
 - A **stance** answers *what would this project sacrifice for, and who pays when
   it wins?* It owns an objective, an accepted harm, and an escalation condition.
 
-Most review systems collapse the two. A domain skill starts as a checklist,
-then quietly acquires a verdict: "never do X", "always prefer Y". Once it has a
-verdict, it is a stance wearing a checklist's name, and the project has lost the
-ability to see who paid for that verdict.
+A domain skill that quietly acquires "never do X" or "always prefer Y" has
+become a stance wearing a checklist's name. Hydra-crux separates the argument
+from the checks and records the **topology** that makes both findable and
+routable.
 
-Hydra-crux keeps them separate and records the **topology** that connects them.
-The topology is not the argument. It is the index that makes the argument
-findable, routable, and hard to forget.
+## Topology, prose, and the registry
 
-## Topology, prose, and generated indexes
+| Artifact                     | Owns                                                                | Written by                          |
+| ---------------------------- | ------------------------------------------------------------------- | ----------------------------------- |
+| `.agents/review-graph.toml`  | ids, links, payers, oppositions, decisions, unrepresented interests | this skill                          |
+| `*-stance/SKILL.md`          | objective, attacks, evidence, accepted harm, escalation             | a person, from the graph's topology |
+| `*-review/SKILL.md`          | checks, required evidence, scope boundary                           | a person, from the domain           |
+| `*-stance-registry/SKILL.md` | navigation generated from graph and skill paths                     | `hydra_graph.py generate`           |
 
-| Artifact                                        | Owns                                                                             | Written by                          |
-| ----------------------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------- |
-| `.agents/review-graph.toml`                     | ids, links, payers, oppositions, route hints, decisions, unrepresented interests | this skill                          |
-| `*-stance/SKILL.md`                             | objective, attacks, evidence, accepted harm, escalation                          | a person, from the graph's topology |
-| `*-review/SKILL.md`                             | checks, required evidence, scope boundary                                        | a person, from the domain           |
-| `*-stance-registry/SKILL.md`, `docs/stances.md` | navigation and generated indexes                                                 | `hydra_graph.py generate`           |
-
-The graph does **not** own the prose. A graph that contains every sentence is a
-second source of truth, and the copy nobody re-reads is the one that drifts.
-
-`generate` writes only the registry and the discovery map by default. It writes
-stance and surface bodies only with `--views`, and only when the graph carries
-the prose fields. That is an explicit choice, not the normal path.
+The graph does not own prose, and the registry is never edited by hand.
+`generate` validates the graph, reads `skills_dir`, and writes the registry; it
+does not generate stance or surface bodies.
 
 ## Hard invariants and semantic checks
 
-These are the hard invariants. The first group is machine-checkable; the second
-group is a semantic review check that no string matcher can decide.
+The graph validator enforces items 1–3 and 6 below. The route CLI enforces the
+`AXIS=REASON` shape in item 5. Item 4 is a review invariant: no validator can
+tell whether an orchestrator hand-picked a set instead of using the route.
 
-1. **Every stance names a payer and an opponent.** The graph checks the
-   references. Whether the payer is real is a review question.
-2. **Every surface names an owner.** Either a stance reads it, or it names an
-   explicitly unopposed stake. A check with neither is an orphan.
-3. **Every opposition names a recorded sacrifice.** The graph checks that the
-   field is present. Whether the project actually paid that cost is a review
-   question.
-4. **A route closes over declared contention, not graph reachability.** A
-   surface declares which axes it contends. The route adds both sides of those
-   axes. It does not transitively add every axis a stance happens to touch.
-5. **A skipped stance is named with a reason.** Silence is not a skip. Whether
-   the reason is honest is a review question.
-6. **A decision names its owner document, status, and reopen condition.** The
-   graph checks the fields. Whether the decision was implemented and verified is
-   a review question.
+1. **Every stance names a payer and an opponent.**
+2. **Every surface has an owner:** a contending stance reads it, or it names an
+   unopposed stake.
+3. **Every opposition has at least one decision.** Whether the recorded outcome
+   reflects the real cost remains a semantic question.
+4. **The route is the only selector.** A hand-picked stance set is an unrecorded
+   route.
+5. **Every skipped axis has a reason.** Silence is not a skip.
+6. **Every decision has an owner document and a reopen condition.** Its kind and
+   fields are defined in [graph-format.md](references/graph-format.md#decisions).
 
-The semantic checks:
+These checks require reading, not pattern matching:
 
-- **A deferred axis has an evidence-backed reason and a forge condition.** "The
-  set is already full" is not a reason. A count is not evidence. The graph can
-  record the reason; only a reviewer can judge it.
-- **A payer is real and the sacrifice is acceptable.** A non-empty field is not
-  evidence that anyone actually bears the cost.
-- **A surface has not taken back a verdict.** A check surface owns checks, not
-  the tradeoff. If its prose decides what to do when the check fails, the
-  adjudication has moved back into the surface.
+- **A payer is real and the sacrifice is acceptable.** A non-empty field does
+  not prove that anyone bears the cost.
+- **A surface has not taken back a verdict.** If its prose decides the tradeoff,
+  move the decision to the graph and the argument to a stance.
 - **A stance is not seeded with its author's findings.** Current symbols in
   **Attacks**, an open violation in **Bad patterns**, or the defect restated in
-  the Objective makes the stance a confirmation of its author.
-
-`scripts/concept_audit.py` narrows these checks to a candidate list. Run it in
-step 7 of a first build, and again whenever a migration or an evolution changes
-the prose. It is opt-in: with no config it makes no network call and reports
-deterministic candidates; with `[decision]` it adds triage. It never decides a
-semantic check, and it has no LLM client: the reading is yours. See
-`references/concept-audit.md`.
+  the Objective makes the pass confirm its author.
+- **A missing interest stays visible.** Record `unrepresented`; do not invent an
+  opponent or use the current stance count as a reason to omit it.
 
 Everything else is advisory. Do not add a required field to avoid a
 conversation.
@@ -94,8 +74,7 @@ conversation.
 ## No fixed counts
 
 No kind has a target number: stakes, stances, surfaces, axes, oppositions, and
-decisions all follow the evidence. A set of three stances and a set of nine
-pass the same checks.
+decisions all follow the evidence:
 
 - one stance per **side** of an axis, not one per axis;
 - one stance may participate in several axes;
@@ -107,195 +86,134 @@ pass the same checks.
 
 A graph where every payer is exactly the opposing stance, and every axis has
 exactly two stances, is a quota signature. It is not an error, but check whether
-the harmed side has an independent interest. A perfect surface/stance matching,
-one surface per stance, is the same signature in the other layer: check whether
-each surface has a check that predates the stance. `concept_audit.py` reports
-both ratios.
-
-The `luwu` fixture graph under `tests/fixtures/` shows an evidence-driven count.
-It is not a target. If the evidence supports three, write three.
+each harmed side has an independent interest. A perfect one-to-one
+surface/stance pairing is the same signature in the other layer: check that
+each surface's checks predate the stance.
 
 ## Discover latent stakeholders
 
-The hardest failure is not a bad stance. It is a real interest nobody
-represents. Do not start by asking "what pairs can I form?" Start by asking
-"who pays, and who is missing?"
+Start with "who pays, and who is missing?", not "what pairs can I form?"
 
-Use these discovery moves:
-
-1. **Read rejected alternatives and deliberate limits.** Every "no journal",
-   "Linux-first", "no formatter", "unsupported" is a decision where someone
-   lost something. Name the lost task and its user.
-2. **Trace the full user task for manual rescue.** From a new machine, a daily
-   edit, a failed apply, to the next run: where must a person hand-edit a file,
-   remember context, retry, or read history? Record the bearer, frequency, and
-   measurable cost.
-3. **Attribute the cost of guards.** For every new check, test gate, ownership
-   rule, or CI step, ask who maintains it, how many places must change together,
-   and what a false rejection costs.
-4. **Read the losing side of a "no".** A prohibition is evidence of a sacrifice,
+1. **Read rejected alternatives and deliberate limits.** Every "unsupported" or
+   "no formatter" records a lost task and a bearer.
+2. **Trace the full user task for manual rescue.** Find hand edits, remembered
+   context, retries, and history reads; record their frequency and cost.
+3. **Attribute the cost of guards.** Ask who maintains each check, gate,
+   ownership rule, or CI step, and what a false rejection costs.
+4. **Read the losing side of a "no".** A prohibition is evidence of sacrifice,
    not a reason to silence the loser.
-5. **Probe with two small designs.** Write one design that favors each interest.
-   If you cannot name what the other loses, it is a check or a hypothesis, not
-   an axis.
-6. **Let misses change the set.** A real loss found outside the review is
-   stronger evidence than a neatly filled payer field. Add it as an
-   `unrepresented` row first; forge a stance only when the loss is real and
-   recurring.
-
-An interest with no stance is not a failure of the graph. It is a recorded gap.
-`unrepresented` is a first-class outcome. Do not invent an opponent to make the
-graph look complete.
+5. **Probe with two small designs.** If neither interest can name what the other
+   loses, the candidate is a check or hypothesis, not an axis.
+6. **Let misses change the set.** Record a real loss as `unrepresented` first;
+   forge a stance only when the loss is real and recurring.
 
 ## Choose the mode
 
 Read the project state before writing anything:
 
-- **No graph, legacy domain review skills present.** Use
-  [migration-prompt.md](references/migration-prompt.md) once. It dissolves the
-  old layer, archives it, and makes hydra-crux the only entry point.
-- **No graph, no legacy layer.** Bootstrap from stakes and evidence with the
-  procedure below.
-- **Graph exists.** Evolve it. Do not rebuild from scratch, and do not run the
-  migration prompt again: the old skills are already archived, and
-  re-inventorying them duplicates surfaces.
+- **No graph, legacy review skills or a hand-written registry present.** Use the
+  migration procedure below once. Existing material is evidence, not a parallel
+  review layer.
+- **No graph and no legacy layer.** Bootstrap from stakes and evidence below.
+- **A v1 graph exists.** Follow [upgrade-v1.md](references/upgrade-v1.md).
+- **A v2 graph exists.** Evolve it; do not rebuild or repeat migration.
 
 ## Build or repair the topology
 
-Read [stance-design.md](references/stance-design.md) for the anatomy and the
-opposition test. Read [discovery-template.md](references/discovery-template.md)
-for the stake map. Read [graph-format.md](references/graph-format.md) for the
-field reference.
+Read [stance-design.md](references/stance-design.md) for stance anatomy and the
+opposition test, [discovery-template.md](references/discovery-template.md) for
+the evidence map, and [graph-format.md](references/graph-format.md) for every
+graph field.
 
 ### 1. Recover stakes from evidence
 
-Do not invent objectives. Recover them from:
-
-- the product brief, architecture notes, and decision records;
-- what the code protects: validation, boundaries, persistence, compatibility,
-  performance budgets, authorization;
-- what the tests refuse to let change;
-- rejected alternatives and stated limits;
-- what maintainers argue about in history and review comments;
-- what the user says must not break.
+Recover objectives from product and architecture documents, decision records,
+validation and persistence boundaries, compatibility and performance limits,
+authorization, tests, rejected alternatives, history, review comments, and the
+user's explicit constraints.
 
 Write each stake as *what this project would sacrifice other things to keep*.
-Stakes with no opponent are still stakes; they become checks or `unopposed`
-rows.
+Cite `path#section` evidence. Stakes without opponents remain checks or
+unrepresented interests; do not manufacture contention.
 
 ### 2. Separate surfaces from stances
 
-For every existing `*-review` skill, classify each paragraph:
+Classify each existing review paragraph semantically:
 
-- a check, a path to inspect, or a required evidence item belongs to the
-  **surface**;
-- a verdict, a "never", an "always prefer", or a "this must win" belongs to a
-  **stance**;
-- a scope boundary belongs to the surface, unless it is really a value
-  judgment.
+- checks, inspection paths, evidence requirements, and scope boundaries belong
+  to a **surface**;
+- verdicts and independent tradeoff adjudication belong to a **stance**;
+- a scope boundary that actually chooses a winner is also a stance question.
 
-A surface may keep its detailed checklist. It must not keep an independent
-adjudication procedure or a claim to decide the tradeoff. That role moves to
-the orchestrator and the stance set.
+A surface may keep its detailed checklist, but not a veto or escalation rule.
+Write checks against the post-change state inside a named scope: "no X" means
+"no X in this scoped path", not "the diff never mentions X".
 
 A first build has no old skills to split. Derive surfaces from the checks the
-project already runs — tests, CI gates, review questions, and requirements the
-owner documents state — not from the stance list.
+project already runs—tests, CI gates, review questions, and requirements the
+owner documents state—not from the stance list.
 
-Every surface file names a **scope boundary**: which paths, phases, and change
-kinds its checks apply to, and which they do not. Write each check against the
-post-change state inside that boundary. A check that says "no X" means "no X in
-the scoped path", not "the diff never mentions X". A check without a boundary
-applies to every change that mentions its subject, and becomes a hard block on
-a legitimate removal or rename.
+A prevention skill runs before writing rather than reviewing a change. Keep it
+as an ordinary skill outside the graph. Record any otherwise unowned interest
+it reveals as `unrepresented`; do not turn the prevention step into a surface.
 
-### 3. Form oppositions only where a sacrifice is recorded
+### 3. Form oppositions only where a decision records contention
 
-An opposition row needs:
+An opposition needs:
 
-1. **A recorded sacrifice.** Cite the place where one stake already lost to the
-   other: a rejected alternative, a deliberate limit, a changelog entry, a
-   decision record, with `path#section`.
-2. **Both sides.** Each stance names the other as a payer, with the resource it
-   gives up.
-3. **A contended resource**, named as a quantity or a surface, never a mood.
+1. **A decision with evidence.** Cite a rejected alternative, deliberate limit,
+   or owner-document decision where the objectives contended.
+2. **Both sides.** Each stance names its opponent and the resource it gives up.
+3. **A contended resource**, named as a quantity or surface, never a mood.
 4. **A same-direction check.** If two stakes push the same way on every recorded
-   decision, they are one stake. Merge them and say so.
+   decision, merge them.
 
-A payer may be a **latent payer**: a named person, role, or interest with no
-stance yet. Record it in `accepted_harm` without `payer_stance`. It will not be
-routed, but it will be visible. Do not force it into a stance in the same pass.
+Every opposition must be referenced by at least one decision's `axes`. A payer
+without a stance may be latent: name the person, role, or interest in
+`accepted_harm` without `payer_stance`. Keep a genuinely unowned interest in
+`unrepresented`; do not force either into a stance to complete the graph.
 
 ### 4. Write the prose by hand
 
 Create `.agents/skills/<project>-<stake>-stance/SKILL.md` from
-[stance-template.md](references/stance-template.md). The load-bearing sections
-are:
+[stance-template.md](references/stance-template.md). Its load-bearing sections
+are **Objective**, **Accepts this harm**, **Attacks**, **Does not own**, and
+**Escalates when**. Attacks are general failure shapes, not the author's current
+findings.
 
-- **Objective** — the one thing this stance maximizes.
-- **Accepts this harm** — the cost it knowingly imposes, with a named payer.
-- **Attacks** — concrete failure shapes, not current symbols or open findings.
-- **Does not own** — findings to route to a sibling stance or a surface.
-- **Escalates when** — the conditions under which it refuses a local
-  compromise.
-
-Do not copy a surface checklist into a stance. Link the surface. A stance that
-restates the checklist has no independent value, and a checklist that argues for
-a value has become a stance by accident.
-
-Mark each stance `disable-model-invocation: true` as a best-effort hint. Its
-enforcement varies by harness, so the description must also open with "Use only
-when assigned by a stance-review orchestrator".
+Link surface checklists instead of copying them into stances. Mark each stance
+`disable-model-invocation: true` as a best-effort hint and open its description
+with "Use only when assigned by a stance-review orchestrator"; harness
+enforcement varies.
 
 ### 5. Write the graph
 
-Create `.agents/review-graph.toml`. Keep it topology-only:
+Create `.agents/review-graph.toml` using
+[graph-format.md](references/graph-format.md) as the sole field reference. Keep
+it topology-only: stakes, surfaces, stances, oppositions, decisions, and
+unrepresented interests. Use `contends` only for axes a surface actually
+exercises, and keep prevention skills outside it.
 
-- `[[stake]]` — id, objective, evidence, status
-  (`represented`, `unopposed`, `unrepresented`, `missing`);
-- `[[surface]]` — id, title, trigger, owner documents, `skill`, `phase`,
-  `contends`, route `paths`/`keywords`, and either a stance link or
-  `unopposed_stake`;
-- `[[stance]]` — id, objective, `skill`, `surfaces`, `stakes`, and
-  `[[stance.accepted_harm]]` rows;
-- `[[opposition]]` — id, stances, contended resource, recorded sacrifice, state;
-- `[[resolved]]`, `[[open_conflict]]`, `[[sacrifice]]` — decisions with owner
-  document, status, reopen condition, and the surfaces/stances they constrain;
-- `[[evidence]]` — one row per pass that changed something: date, pass,
-  conflict, effect;
-- `[[counterexample]]` — a project-specific pattern the pass caught, the
-  surface or stance that caught it, and its status;
-- `[[unrepresented]]` — a real interest with no stance, and why;
-- `[[deferred_axis]]` — only with a semantic reason and a forge condition.
+### 6. Generate and lint
 
-Use `contends` on a surface to name the axes it actually exercises. This is what
-keeps a local change local. A surface that does not declare an axis will show
-up as an unclosed axis instead of silently expanding the review.
-
-### 6. Validate and generate indexes
-
-Set `HYDRA` to the directory containing the installed skill. The examples use
-the global install path; if the skill is vendored into the project, use
-`.agents/skills/hydra-crux` instead.
+Set `HYDRA` to the installed skill directory, or to
+`.agents/skills/hydra-crux` when vendored:
 
 ```sh
 HYDRA="${HYDRA_CRUX_SKILL:-$HOME/.agents/skills/hydra-crux}"
 
 python3 "$HYDRA/scripts/hydra_graph.py" \
-  --graph .agents/review-graph.toml validate
+  --graph .agents/review-graph.toml generate
 
 python3 "$HYDRA/scripts/hydra_graph.py" \
-  --graph .agents/review-graph.toml generate \
-  --out .agents/skills --docs-out docs
+  --graph .agents/review-graph.toml lint
 ```
 
-Run `lint_review_graph.py` on every commit. Its object is the graph metadata in
-`.agents/review-graph.toml` and the generated indexes, not the authored
-`SKILL.md` prose. It checks the graph structure, the path references, and
-whether the generated indexes are in sync. It does not read stance or surface
-prose. Whether a payer is real, whether a sacrifice is acceptable, whether a
-check is any good, or whether a surface has quietly taken back a verdict are
-semantic review questions, not lint rules.
+Generate first, then lint. The command validates the schema, structured paths,
+registry synchronization, and pass documents; it does not judge authored prose.
+See [graph-format.md](references/graph-format.md#what-lint-checks) for its exact
+scope. Whether a payer is real, a sacrifice is acceptable, or a surface contains
+a hidden verdict remains a semantic review question.
 
 ### 7. Audit the draft against the owner documents
 
@@ -319,198 +237,196 @@ audit never gates the build.
 
 ### 8. Add the entry point
 
-Add a short section to the project's `AGENTS.md` (or the document that owns the
-working method) covering only:
+Add a short section to the project's `AGENTS.md`, or its working-method owner,
+covering only:
 
-- where the review graph and registry are;
-- when to run a stance review and when not to;
-- the three-step shape: route, assign one stance per reviewer, adjudicate in the
-  orchestrator;
+- where the graph and generated registry live;
+- when to run a stance review;
+- the route → one stance per reviewer → orchestrator adjudication shape;
 - where decisions live, and that unresolved conflicts are not averaged;
-- the one rule reviewers must not break: one stance, no other reviewer's output.
+- the independence rule: one stance and no other reviewer's output before the
+  contest.
 
-Do not copy the protocol into `AGENTS.md`. A second copy drifts.
+Link the protocol instead of copying it. Register `reviews_dir` in the
+project's document routing and install the
+[lint hook](references/graph-format.md#install-the-lint-hook). `jj commit` does
+not trigger Git hooks, so run `lint` manually before committing.
 
 ### 9. Route a real change
 
 ```sh
-# HYDRA is set in step 6; set it here if you copied this block alone.
 python3 "$HYDRA/scripts/hydra_graph.py" \
   --graph .agents/review-graph.toml route \
   --changed src/example.py --format markdown
 ```
 
-The route returns:
+The review skill's step 1 owns selector and status semantics, including
+`--diff-file`, `--include-axis`, per-axis `--skip`, and `--pass`. Use the route
+as returned; never assemble a manual subset. If it misses or over-selects a
+surface, repair the graph and reroute, or report the defect.
 
-- surfaces selected by path or keyword;
-- both sides of the axes those surfaces declare in `contends`;
-- closure surfaces that contend the same axes;
-- axes touched by a selected stance but not declared by any selected surface;
-- prior decisions and open conflicts the change must re-check;
-- unopposed checks, explicit skips, and axes left unreviewed by skips.
-
-The route command is the only selector: `--changed`, `--diff`, `--all`,
-`--budget`, and `--skip`. A hand-picked subset or a hand-built cross-product is
-not a route. If the route misses a surface or selects the wrong one, fix the
-graph's `paths`, `keywords`, or `contends` and reroute; if you cannot change the
-graph, stop and report a route defect.
-
-A path match is a direct hit. A keyword match is a lexical candidate: it says
-the change mentions the surface's subject, not that the change violates the
-check. Read the post-change state. Deleting a banned token satisfies a check
-that bans it; the keyword hit alone is not a finding.
-
-For a prevention step such as primitive reuse, run
-`route --phase before-write`; it is not part of the normal review route.
-
-If the route is too broad, do not silently drop stances. Use `--budget` to get
-disjoint batches, and `--skip STANCE=REASON` for anything that will not run.
-`--skip` is the only way to drop a selected stance, and the reason is mandatory.
-If a skip removes one side of a selected opposition, skip the whole axis and
-record it as unreviewed, or keep both sides; a one-sided axis is
-`blocked_by_skip`. `accepted_with_skips` requires `--accept-skip`;
-`needs_grouping` means the pass has not been bound yet.
-
-Run a **control** before declaring the topology installed: take a real past
-change that traded one objective against another and check that the route
-selects both sides. A topology that has never fired is a hypothesis.
-
-Run a **negative control** too: a legitimate change that removes or renames the
-subject of a surface check. If the route selects the surface and the check
-fires on the removal itself, the check is reading the diff instead of the
-post-change state. Fix the check or its scope boundary before installing the
-topology.
+Run a **control** before declaring installation complete: take a real past
+change that traded one objective against another and verify that the route
+selects both sides. Run a **negative control** with a legitimate removal or
+rename: a keyword match is only a candidate, and the surface check must read the
+post-change state rather than reject the removal itself.
 
 ## Decisions that bind design
 
-A decision is not a registry row that says "resolved". It has:
-
-- the scope it constrains (surfaces and stances);
-- the axes it belongs to, when a shared stance would otherwise pull unrelated
-  history into a local route;
-- the choice and the sacrifice;
-- the owner document that holds the contract;
-- a status: `decided`, `decided_not_implemented`, `implemented`, `verified`,
-  `reopened`;
-- the implementation or test that makes it real;
-- a `reopen_when` condition.
-
-The route surfaces prior decisions that touch the change. The reviewer must say
-which of these happened:
-
-- the change follows the decision;
-- the change implements a missing part;
-- the change triggers the reopen condition.
-
-Do not collapse "decided", "implemented", and "verified". Most passes end at
-"findings recorded" or "decided"; say so. A decision that stays
-`decided_not_implemented` is visible debt, not success.
+Decision kinds, required fields, status meaning, and reversible-choice rules
+have one home: [graph-format.md](references/graph-format.md#decisions). Read it
+before creating or changing a decision. A route surfaces applicable decisions;
+the reviewer must determine whether the change follows, implements, verifies,
+or reopens them rather than treating a recorded choice as proof of a changed
+design.
 
 ## Migrate domain review skills
 
-A domain review skill is usually a surface with a hidden stance. Migrate it in
-this order:
+Use this section for the one-shot structural replacement. It is the only
+migration procedure; do not rerun it after a v2 graph exists.
 
-1. Keep its checks, evidence, scope boundary, and "do not use for" clauses.
-2. Remove its independent verdict, adjudication procedure, and claim to decide
-   the tradeoff.
-3. If it argues for a value, extract that value into a stance. If the value has
-   no opponent, keep it as an unopposed check.
-4. Link the surface from the stance's `surfaces` list. Do not copy the checklist.
-5. If the skill is a prevention step rather than a review step, give it
-   `phase = "before-write"` and keep it out of the review route.
+The old skills are raw material. Keep their checks and evidence, move their
+verdicts into partisan stances, delete the old skills, and make hydra-crux the
+only review entry point. Git history preserves the old source. Prevention skills
+remain ordinary skills outside the graph.
 
-Do not keep a dual track. If a domain skill cannot be dissolved, name the
-semantic boundary it still owns: a surface, an evidence source, an owner
-document, an opposition, or a genuinely new stance. "It has useful checks" is
-not a boundary; those checks belong to a surface.
+### Migration rules
 
-For a one-shot structural replacement — delete or archive the old domain skills,
-make hydra-crux the only entry point, and prove the old checks are still
-reachable — use
-[migration-prompt.md](references/migration-prompt.md). That prompt is a
-migration act, not a runtime rule; the default skill does not delete anything.
+1. **No dual track.** Delete old review skill directories and remove their
+   names from `AGENTS.md`, README, workflow documents, and discovery paths.
+2. **Every old check has a home.** Preserve checks, evidence requirements, and
+   scope boundaries in surface prose.
+3. **Every old verdict has a home.** Move tradeoff decisions into stances and
+   graph decisions; record an ownerless losing interest as `unrepresented`.
+4. **Write stance arguments by hand.** Link checklists rather than copying them.
+5. **Do not invent opponents.** Use latent payers or `unrepresented` where the
+   losing interest has no stance.
+6. **Record migration losses.** Name dropped checks, softened verdicts, and lost
+   workflows rather than hiding them in a rename.
+
+### 1. Inventory and classify
+
+Read every old skill and produce this table before editing:
+
+| Old skill | Checks and evidence | Verdicts and adjudication | Scope boundary | Destination |
+| --------- | ------------------- | ------------------------- | -------------- | ----------- |
+
+Classify each paragraph semantically. A verdict decides a tradeoff or forbids an
+option regardless of another interest; a keyword alone cannot make that
+classification. Inventory hand-written registries and entry points as well.
+
+### 2. Build the replacement
+
+Follow steps 1–5 above. Choose either per-surface skills for progressive
+disclosure or one surface catalog with clear per-surface sections. Write every
+stance from its evidence and opposition test, and keep prevention skills outside
+the graph.
+
+### 3. Replace entry points and validate
+
+Delete the old review skills, remove every old entry point, and point the
+project only to the graph, generated registry, and hydra-crux route. Do not
+hard-code a home-directory install path in project documentation. Run the
+generate-then-lint commands in step 6.
+
+### 4. Audit the prose
+
+One reviewer reads every surface for verdicts, vetoes, and independent
+escalation rules. Another reads every stance for copied checklists, missing
+arguments, and preloaded open findings. These are semantic reviews; fix their
+findings before the acceptance controls.
+
+### 5. Run four acceptance controls
+
+1. **Coverage:** route a real past change that exercised an old skill. Confirm
+   the surface and both sides of the relevant axis are selected and the old
+   check remains reachable.
+2. **Locality:** route a local change and confirm it does not select the whole
+   stance set.
+3. **Veto audit:** temporarily add a surface sentence claiming final authority
+   regardless of the opposing stance. Confirm an independent reviewer flags it,
+   then remove the sentence. Lint is not expected to judge the prose.
+4. **Entry point:** search project documentation and discovery paths for every
+   deleted skill name; no active reference may remain.
+
+### 6. Report the migration
+
+Report:
+
+- old skills and their destinations;
+- axes, stances, decisions, and the evidence for each;
+- checks moved, merged, or dropped;
+- unrepresented interests;
+- commands and results;
+- each acceptance control's outcome;
+- migration costs and remaining unproven claims.
+
+Success means old entry points are gone, checks remain reachable, a real change
+routes to both sides, and the prose audit finds no hidden veto—not merely that
+lint passes.
 
 ## Evolve an existing topology
 
-Run this when `.agents/review-graph.toml` already exists. The graph is the
-current topology, not a draft. Read it, the registry, the graph's `[[evidence]]`
-log, and the open decisions before editing.
+Read the v2 graph, generated registry, applicable decisions, and recent pass
+documents before editing.
 
-1. Find the evidence for the change: a new incident, a rejected alternative, a
-   manual rescue, a new owner document, or a decision that was implemented or
-   reopened. No evidence, no new stance.
-2. Make the smallest topology change:
-   - add a stake only when a new objective has owner-document evidence;
-   - add a stance only when it has a payer and an opponent with a recorded
-     sacrifice; update `accepted_harm` on both sides;
-   - add an axis only when both sides have evidence; otherwise record a
-     `deferred_axis`;
-   - retire or merge a stance only with a recorded reason and a replacement
-     route; keep the losing cost visible;
-   - add a surface for a new check; do not move a verdict into it;
-   - if a new legacy domain skill appears, dissolve it with the per-skill
-     procedure above; do not re-run the whole migration prompt;
-   - update a decision's status, owner, or `reopen_when`; do not overwrite its
-     history.
-3. Edit the stance and surface prose by hand. Do not regenerate bodies.
-4. Validate, regenerate the indexes, and route a real change. The route must
-   select both sides of the axes it touches; an unselected stance is a skip with
-   a reason, not silence.
-5. Run the semantic audit: a surface has not taken back a verdict, a stance is
-   not seeded with its author's findings, and a deferred axis has evidence, not
-   a count.
-6. If an owner document changed, re-check every stake whose `evidence` cites the
-   changed document. A contract change that selects no stance is a routing gap,
-   not a clean review.
-7. Record the change in the graph's `[[evidence]]` table: date, scope, pair or
-   crux, outcome, and what was retired or re-opened. Add project-specific
-   patterns to `[[counterexample]]`. Regenerate the registry; do not edit the
-   generated file.
+1. Find evidence: an incident, rejected alternative, manual rescue, owner
+   document, implemented decision, or reopen condition. No evidence, no stance.
+2. Make the smallest change:
+   - add a stake only with owner-document evidence;
+   - add a stance only with a payer, opponent, and decision; update
+     `accepted_harm` on both sides;
+   - add an opposition only when both sides have evidence; otherwise record an
+     `unrepresented` interest;
+   - retire or merge a stance only with a reason and replacement route, keeping
+     the losing cost visible;
+   - add surfaces for checks, never for hidden verdicts;
+   - update decisions without erasing their history.
+3. Edit stance and surface prose by hand. Resolve pass map candidates and decide
+   whether counterexample candidates belong in the general library, a stance's
+   attacks, or the toolchain. Do not copy full patterns into project records.
+4. Generate, lint, and route a real control change. Every omission is an
+   explicit per-axis skip with a reason.
+5. Repeat the semantic audits for surface verdicts, preloaded stances, real
+   payers, and unrepresented interests.
+6. If an owner document changed, re-check every stake whose evidence cites it.
+   A contract change that selects no relevant stance is a routing gap.
 
 ## Formalism is the failure mode
 
-The graph is a tool, not a success metric. These are the ways it goes wrong:
-
-- **Filling the graph to make it valid.** A green lint with invented payers is
-  worse than a red lint with an honest gap.
-- **Inventing an opponent.** If a stake has no real opponent, leave it
-  unopposed. Do not manufacture a pair to satisfy the payer rule.
-- **Forcing every surface to have a stance.** A check can be unopposed. Record
-  the stake and move on.
-- **Deferring an axis because the set is full.** A count is not a reason. Name
-  the missing evidence and the condition that would forge the axis.
-- **Generating prose from topology.** A generated stance with empty attacks is a
-  template, not a stance. Keep the prose hand-authored unless the project
-  explicitly chooses generated views.
-- **Treating a green lint as a working review.** The lint checks relationships.
-  It does not check whether the conflict is real, whether the payer cares, or
-  whether the design changed.
-- **Treating "no conflict" as failure.** A review that finds no conflict must
-  name the axes it checked and why the design already satisfies them. Silence
-  is not evidence; a named satisfaction is.
+- **Filling the graph to make it valid:** green lint with invented payers is
+  worse than an honest gap.
+- **Inventing an opponent:** leave an uncontended stake unopposed or
+  unrepresented.
+- **Forcing every surface to have a stance:** a useful check may be unopposed.
+- **Using a count as a reason:** name missing evidence instead.
+- **Generating prose from topology:** an empty argument is a template, not a
+  stance.
+- **Treating green lint as a working review:** lint checks relationships, not
+  whether the conflict or payer is real.
+- **Treating no conflict as failure:** name the axes and evidence of
+  satisfaction; silence is the failure.
 
 ## What this skill does not do
 
-This skill does not run a pass, escalate a conflict, or harvest a
-counterexample. Those belong to [hydra-crux-review](../hydra-crux-review/SKILL.md).
-It does not own decision documents; the graph references them. It does not
-replace domain expertise; it routes to it.
+This skill does not run a pass, escalate a conflict, or harvest review
+candidates. Those belong to
+[hydra-crux-review](../hydra-crux-review/SKILL.md). It does not own decision
+documents or replace domain expertise.
 
 ## Deliver the result
 
 For a new topology, report:
 
-- the stakes found and their evidence;
-- the axes with recorded sacrifices, and the stances on each side;
-- the surfaces and their owners;
-- the unrepresented interests and deferred axes;
-- the files written and the commands run;
-- the control change and whether the route selected both sides.
+- stakes and their evidence;
+- **per axis**, both sides' stances, related decision ids, and what each stance
+  accepts sacrificing;
+- surfaces and owners;
+- unrepresented interests;
+- files written and commands run;
+- control and negative-control results.
 
-For a maintenance pass, report what changed, the evidence that justified it, and
-the effect on the axes and routes.
-
-Do not claim a topology is working because it exists. Claim it is working when a
-route changed a design, a decision was implemented, or a real loss was recorded
-that the old set would have missed.
+For maintenance, report the evidence and smallest change, then give the same
+per-axis account for every affected axis plus route effects. Do not claim the
+topology works because it exists; claim it when a route changes a design, a
+decision is implemented or verified, or a real loss becomes visible.

@@ -25,18 +25,6 @@ while IFS= read -r skill_md; do
     if ! python3 "$VALIDATE_SCRIPT" "$skill"; then
         FAILED=1
     fi
-    # `lint_*.py` is a mechanical rule, not review guidance: prek runs it on
-    # every commit, so it must be executable and must pass its own check.
-    for lint in "$skill"/scripts/lint_*.py; do
-        [ -f "$lint" ] || continue
-        if [ ! -x "$lint" ]; then
-            echo "$rel: $(basename "$lint") is not executable"
-            FAILED=1
-        elif ! python3 "$lint" --self-test; then
-            echo "$rel: $(basename "$lint") failed its self-test"
-            FAILED=1
-        fi
-    done
 done < <(find "$ROOT_DIR/skills" -name SKILL.md -type f 2>/dev/null | sort)
 
 if [ "$FOUND" -eq 0 ]; then

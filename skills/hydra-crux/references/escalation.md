@@ -45,10 +45,14 @@ A conflict is **essential** — the second state — only when all four hold:
    in condition 2 rather than here.
 4. **Irreversible or contract-changing.** The choice changes a contract, a
    stored format, a public interface, or a commitment that is expensive to
-   reverse. Reversible choices belong to the agent.
+   reverse. An orchestrator may decide a reversible non-cost choice only by
+   recording `decided_by="orchestrator"` and reporting it at delivery.
 
-If any of the four fails, the conflict is in state 1 or 3. Find the buffer, or
-name the measurement.
+If condition 1 or 2 fails, find the buffer or name the measurement. If only cost
+separates the options, record an open decision owned by the user. A reversible
+choice may be decided by the orchestrator under condition 4; all other essential
+conflicts belong to the user. Decision semantics are defined in
+[graph-format.md](graph-format.md#decisions).
 
 ## Confirming a joint solution
 
@@ -67,8 +71,9 @@ objective" are three different claims. Only the third is a verified buffer.
 
 ## Finding buffer space
 
-Before declaring a conflict essential, try these in order. Each is a way to
-serve both objectives rather than split the difference.
+Before declaring a conflict essential, try these strategies in whatever order
+the evidence favors. Each is a way to serve both objectives rather than split
+the difference.
 
 - **Scope split.** Serve each stance on a different surface: strict at the
   boundary, lenient inside; explicit for the public API, inferred for internal
@@ -145,15 +150,18 @@ Rules for the format:
 
 1. Record the decision in the project's decision records, not in the stance
    files, and in a path that survives a fresh clone.
-2. Add a `[[sacrifice]]` row to the review graph, naming the losing objective,
-   what was given up, the owner document, the status, and the reopen condition.
-   Regenerate the registry. The losing stance stays installed.
+2. Add a `[[decision]]` with `kind = "sacrifice"`, naming the loser, what was
+   given up, `decided_by`, owner document, status, and reopen condition. Follow
+   [graph-format.md](graph-format.md#decisions) and regenerate the registry. The
+   losing stance stays installed.
 3. Update the affected stance's **Accepts this harm** only if the decision
    revealed a cost the stance had not admitted. Do not weaken the stance to
    match the decision.
-4. If the decision makes an opposition permanently moot, remove the pair from
-   the graph's `[[opposition]]` table and record why. Removing a stance requires
-   that its objective is no longer a project objective, not that it lost once.
+4. If the decision makes an opposition permanently moot, first resolve or
+   rewrite every decision that cites it. Record the retirement reason in each
+   replacement decision's `summary`, then delete the opposition. Removing a
+   stance requires that its objective is no longer a project objective, not that
+   it lost once.
 
 ## Anti-patterns
 
@@ -161,22 +169,19 @@ Rules for the format:
 objective and is the most common way adversarial review silently fails. If you
 cannot name which stance's objective the design fully serves, it is an average.
 
-**The deferred conflict.** Recording a conflict as "open" without escalating it
-and without a date. An open conflict that nobody is deciding is a decision to
-let the current design win by default.
+**The deferred conflict.** Recording a conflict as open without an owner, next
+action, and reopen condition. An open conflict that nobody is deciding lets the
+current design win by default.
 
 **The filed escalation.** Writing the conflict under a heading that says
 escalated and ending the pass there. The user never sees it, and the document
 is usually the one file nobody clones. The document is the record of an
 escalation, not a substitute for it.
 
-**The ownerless conflict.** An open conflict whose row names a status but no
-owner and no next action. Every orchestrator reads it as already assigned, so
-it survives passes unchanged.
-
 **The unilateral tiebreak.** Choosing a winner because one stance is easier to
-satisfy, or because the agent has a preference. The agent's job is to make the
-tradeoff legible, not to have taste.
+satisfy, or because the agent prefers it. Cost-only and irreversible choices
+belong to the user; a reversible orchestrator choice must be recorded and
+reported.
 
 **The manufactured conflict.** Reporting a conflict to appear rigorous when the
 stances actually agree. Check each stance's **Accepts this harm** first: if

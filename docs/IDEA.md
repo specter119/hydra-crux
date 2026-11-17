@@ -47,9 +47,8 @@ Not a pile of findings. Not consensus. Three things:
 The separation is deliberate. The meta layer is reusable across projects; the
 topology is project-specific; the prose is authored. If the generator also
 owned the prose, it would become a second source of truth, and the copy nobody
-re-reads is the one that drifts. `hydra_graph.py generate` writes the registry
-and discovery map by default; it writes stance and surface bodies only with
-`--views`, and only when the graph carries the prose.
+re-reads is the one that drifts. `hydra_graph.py generate` writes only the
+registry; stance and surface bodies remain hand-authored.
 
 ## What ablation means
 
@@ -100,17 +99,16 @@ prose has to show which.
 
 ## How the set stays honest
 
-- Lint checks metadata and generated indexes. It does not judge prose.
+- Lint checks metadata, structured paths, the registry, and pass records. It
+  does not judge prose.
 - Prose needs semantic review. A pattern match can segment a document or
   collect candidates; it cannot decide that a sentence is a verdict.
-- The concept audit ranks candidates by semantic affinity; a model may triage;
-  a human decides. The audit never becomes the authority.
 - The set proves it can fire by stopping a known-bad control change, not by
   finding conflicts on a change nobody trusted it with.
-- Counterexamples compound. The pass harvests them; the generator applies them.
-  Bugs and missing tests are not harvested; a library of obvious mistakes
-  trains reviewers to look for things nobody would do. See
-  `skills/hydra-crux/references/counterexamples.md`.
+- Counterexamples compound when a pass records candidates and evolution
+  promotes the reusable shapes. Bugs and missing tests are not harvested; a
+  library of obvious mistakes trains reviewers to look for things nobody would
+  do. See `skills/hydra-crux/references/counterexamples.md`.
 
 ## What good looks like
 
@@ -133,9 +131,8 @@ verdict has a payer or is explicitly uncontested.
 
 - How much of the migration can be semantic automation without turning into a
   new schema?
-- Can a decision model triage prose without becoming the authority?
 - How do we keep the graph from becoming a second prose layer?
-- How do we measure drift without measuring the model's confidence?
+- How do we measure prose drift without turning a heuristic into a verdict?
 
 ## Non-goals
 
@@ -148,9 +145,9 @@ verdict has a payer or is explicitly uncontested.
 - Not a verification of its own success. The set proves it can fire by stopping
   a known-bad control change, not by finding conflicts on a change nobody
   trusted it with.
-- Not a proof that the review is good. The lint reads the graph metadata and
-  generated indexes, never the authored `SKILL.md` prose; it cannot tell whether
-  a payer is real, whether a sacrifice is acceptable, or whether a check is any
-  good.
+- Not a proof that the review is good. The lint reads structured graph data,
+  the registry, and pass records, never the authored `SKILL.md` prose; it cannot
+  tell whether a payer is real, whether a sacrifice is acceptable, or whether a
+  check is any good.
 - Not a single skill. Escalating and harvesting are acts of a running pass and
   live in `hydra-crux-review`.

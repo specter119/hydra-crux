@@ -99,17 +99,7 @@ hooks = [
     name = "Validate skills",
     entry = "./scripts/validate-skills.sh",
     language = "script",
-    files = '^skills/[^/]+/SKILL\.md$',
+    files = '^(skills|tests|scripts)/',
     pass_filenames = false,
-  },
-  {
-    id = "lint-skills",
-    name = "Lint review artifacts",
-    entry = "./scripts/lint-skills.sh",
-    language = "script",
-    # The rules read the graph, generated indexes, and paths. They do not read
-    # authored stance or surface prose, so they run on any graph or rule change.
-    files = '^skills/.*\.(md|py|toml)$',
-    pass_filenames = true,
   },
 ]

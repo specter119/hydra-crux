@@ -1,18 +1,25 @@
 # Review graph format
 
 The graph lives at `<project>/.agents/review-graph.toml`. It is a topology
-index, not a copy of the stance or surface prose. Keep it small enough to read
-in one sitting.
+index, not a copy of stance or surface prose. This file is the single reference
+for graph fields, decision semantics, pass documents, and lint behavior.
 
 ## Top level
 
 ```toml
-version = 1
+version = 2
 project = "example"
+reviews_dir = ".agents/reviews" # optional; this is the default
+skills_dir = ".agents/skills"   # optional; this is the default
 ```
 
-`project` is used for the generated registry name
-(`<project>-stance-registry`) and for metadata.
+`project` names the generated `<project>-stance-registry`. `generate` reads
+`skills_dir` and writes that registry. Registry links come from each row's
+`skill` path, and decisions render by `id` and `kind`.
+
+Ids are globally unique across all graph tables. Unknown tables, fields, ids,
+and enum values are errors. Paths are structured metadata: strip any `#anchor`
+before checking existence.
 
 ## Stakes
 
@@ -21,12 +28,11 @@ project = "example"
 id = "S1"
 objective = "What the project would sacrifice other things to keep."
 evidence = ["docs/product.md#value-tests", "docs/design.md#rejected-alternatives"]
-status = "represented" # represented | unopposed | unrepresented | missing
 ```
 
-A `represented` stake must be named by at least one stance. An `unopposed` or
-`unrepresented` stake must not be named by a stance. `missing` is for a theme
-that is known but not yet articulated as a stake.
+Every stake has exactly one owner shape: at least one stance references it, or
+one surface names it as `unopposed_stake`, never both. A stake without an
+opponent is not evidence that a stance must be invented.
 
 ## Surfaces
 
@@ -37,28 +43,20 @@ title = "Example boundary review"
 trigger = ["path validation", "atomic writes"]
 owner_documents = ["docs/reference.md#writes"]
 skill = ".agents/skills/example-boundary-review/SKILL.md"
-phase = "review" # review | before-write | release
 contends = ["proof-vs-cost"]
 paths = ["src/example/filesystem.py", "tests/filesystem/**"]
+exclude_paths = ["tests/filesystem/generated/**"]
 keywords = ["symlink", "atomic"]
-unopposed_stake = "S9" # optional; may coexist with stance links
+unopposed_stake = "S9" # optional
 ```
 
-A surface must have at least one stance that reads it or an `unopposed_stake`.
-It may have both: a check can protect a represented interest and an unopposed
-one at the same time.
+A surface needs a stance reader or an `unopposed_stake`. A surface read by a
+stance must declare `contends`. `exclude_paths` filters files for this surface
+before any other match. Prevention skills that run before writing remain
+ordinary skills outside the graph.
 
-`contends` is the route's causal claim. It names the axes this surface actually
-exercises. The route adds both sides of those axes. It does not add every axis a
-selected stance happens to touch; those appear under `unclosed_axes` for an
-explicit decision.
-
-`phase` keeps prevention steps out of the review route. A `before-write` surface
-is selected with `route --phase before-write`, not by a normal review route.
-
-`checks`, `required_evidence`, and `scope_boundary` are required only when you
-ask the generator for stance or surface views (`generate --views`). A
-topology-only graph can omit them; a graph that generates views cannot.
+Checks, required evidence, and scope boundaries belong in the surface's
+authored `SKILL.md`, not in graph fields.
 
 ## Stances
 
@@ -78,11 +76,9 @@ cost = "the fresh read costs latency"
 resource = "latency"
 ```
 
-`payer_stance` is optional. If present, it must be an opponent in an
-opposition. If absent, the payer is **latent**: a named person, role, or
-interest with no stance yet. Latent payers are visible in the registry but are
-not routed. They are the correct place for a real interest that has not been
-argued into a stance.
+`payer_stance` is optional. If present, it names an opponent in an opposition.
+If absent, `payer` names a latent person, role, or interest that is visible but
+not routed. Do not invent a stance for a latent payer.
 
 ## Oppositions
 
@@ -91,139 +87,234 @@ argued into a stance.
 id = "proof-vs-cost"
 stances = ["example-proof-stance", "example-cost-stance"]
 contended_resource = "latency of one whole-profile apply"
-recorded_sacrifice = "Cost won on later actions; proof won on the first write."
-state = "decided" # open | buffered | decided | deferred
 ```
 
-Each stance in the opposition must name at least one other member as a payer
-with `payer_stance`. The `recorded_sacrifice` must cite a real decision, limit,
-or rejected alternative, not a hypothetical.
+An opposition has only `id`, `stances`, and `contended_resource`. Each stance
+must name another member as a payer. At least one decision's `axes` must
+reference the opposition; the decision, not an extra opposition field, records
+what the project chose or still owes.
 
 ## Decisions
 
+All decisions use `[[decision]]` and share:
+
+- `id`, `kind` (`joint`, `sacrifice`, or `open`), `summary`, `owner_document`,
+  and `reopen_when`;
+- optional `stances`;
+- `axes`, `surfaces`, or both, with at least one present.
+
+### Joint
+
 ```toml
-[[resolved]]
-conflict = "C-1: the plan reports a narrow mode for a wide file"
-resolution = "Disclose the live mode in the projection."
-serves = "both: exposure gets the fact, proof keeps the guarantee"
-evidence = "docs/decisions/c-1.md"
+[[decision]]
+id = "C-1"
+kind = "joint"
+summary = "Disclose the live mode while retaining the fresh-read guarantee."
 owner_document = "docs/decisions/c-1.md"
-status = "decided_not_implemented" # decided | decided_not_implemented | implemented | verified | reopened
 reopen_when = "the projection or the skipped contract changes"
 axes = ["proof-vs-cost"]
 stances = ["example-exposure-stance", "example-proof-stance"]
-surfaces = ["example-confidentiality-review"]
-
-[[open_conflict]]
-conflict = "C-2: plan-time verdict versus boundary-time read"
-pair = "example-proof-stance vs example-cost-stance"
-status = "measurement blocked"
-owner = "repair the benchmark, then run attempt 1"
-reopen_when = "one digest read per action is measured"
-axes = ["proof-vs-cost"]
-stances = ["example-proof-stance", "example-cost-stance"]
 surfaces = ["example-boundary-review"]
+```
 
-[[sacrifice]]
-decision = "Per-action desired-bytes re-render dropped"
-sacrificed = "example-proof-stance"
+Use `joint` only when both sides confirm that the same concrete design fully
+serves their objectives. It requires `axes`, and `stances` must cover both
+sides of every named axis. Agreement to stop arguing, nominal satisfaction, or
+an uncontested proposal is not a joint decision.
+
+### Sacrifice
+
+```toml
+[[decision]]
+id = "C-2"
+kind = "sacrifice"
+summary = "Drop per-action re-rendering to keep whole-profile cost bounded."
 given_up = "whole-profile proof of later actions"
-why = "loop cost"
+decided_by = "user" # user | orchestrator
+sacrificed = "example-proof-stance" # stance or unrepresented id
+status = "implemented" # decided | implemented | verified
 owner_document = "docs/status.md#limits"
-status = "implemented"
-reopen_when = "a later action can write a value the first write did not prove"
+reopen_when = "a later action can write an unproven value"
 axes = ["proof-vs-cost"]
 stances = ["example-proof-stance"]
 surfaces = ["example-boundary-review"]
 ```
 
-Every decision needs `owner_document`, `status`, and `reopen_when`, plus
-`stances` or `surfaces` so a route can find it. `status` is not decoration:
-`decided_not_implemented` is the state that prevents a document decision from
-being mistaken for a design change.
+A sacrifice names the losing stance or unrepresented interest in `sacrificed`,
+what it loses in `given_up`, and who chose in `decided_by`. If `sacrificed` is a
+stance and `axes` is present, that stance must belong to one of those axes.
+`status` distinguishes a choice (`decided`), an implemented change
+(`implemented`), and verified behavior (`verified`); never collapse them.
 
-`axes` is optional and narrows the route: when present, the decision is included
-only if the route selected that axis. Without it, the route falls back to the
-decision's `stances` and `surfaces`, which can pull a shared stance's unrelated
-history into a local change.
+The user decides irreconcilable, irreversible, contract-changing, and cost-only
+choices. An orchestrator may decide a reversible non-cost choice, but must use
+`decided_by="orchestrator"` and report it at delivery. Prefer a joint design
+before recording a sacrifice.
 
-## Review log and counterexamples
+### Open
 
 ```toml
-[[evidence]]
-date = "2026-11-16"
-pass = "review: login channel ablation"
-conflict = "the route selected a removed import by keyword"
-effect = "scoped the surface check to the post-change login path"
-doc = "docs/reviews/2026-11-16-login-channel.md" # optional narrative
-skipped = [{ stance = "example-cost-stance", reason = "not touched by this change" }]
-
-[[counterexample]]
-pattern = "removed-dependency-keyword" # short name; full prose in the library
-caught_by = "example-login-review"
-status = "fixed; the check reads the post-change state"
+[[decision]]
+id = "C-3"
+kind = "open"
+summary = "The joint design is plausible but its digest cost is unmeasured."
+owner = "performance maintainer"
+next_action = "repair and run the digest benchmark"
+owner_document = "docs/decisions/c-3.md"
+reopen_when = "one digest read per action has been measured"
+axes = ["proof-vs-cost"]
+stances = ["example-proof-stance", "example-cost-stance"]
+surfaces = ["example-boundary-review"]
 ```
 
-`[[evidence]]` is the completion record for a pass that changed something: code,
-a decision, a stance, or a surface. A `survey` or `draft` pass does not get a
-row. `date` + `pass` is the link key; `pass` must be unique in the graph. `doc`
-links the narrative review doc, and `skipped` records every stance the pass
-dropped, with its reason. The doc is narrative, not a second record.
+Use `open` while evidence is insufficient or the user has not answered. Name
+`owner` and `next_action`; for a measurement, make the measurement and its end
+condition explicit. An unanswered user decision uses `owner="user"`. A
+cost-only difference stays open for the user rather than becoming an
+orchestrator's silent tiebreak. An open row without an owner and action lets the
+status quo win by default.
 
-`[[counterexample]]` holds a project **instance**: a short `pattern` name, the
-`caught_by` surface or stance, and its `status`. The full pattern prose lives in
-[counterexamples.md](counterexamples.md). `caught_by` is a known stance or
-surface id, or `all` / `all stances` for a pattern caught by the whole set. A
-full pattern definition has one home; an instance links to it. Both tables
-render into the registry.
+A decision without `axes` can only be `sacrifice` or `open`; do not invent an
+axis merely to make routing more convenient.
 
-## Unrepresented and deferred
+## Unrepresented interests
 
 ```toml
 [[unrepresented]]
+id = "U-1"
 stake = "platform reach"
 where = "docs/design.md#rejected-alternatives"
-why = "no value test or non-goal defends it"
-
-[[deferred_axis]]
-axis = "authority-vs-completion"
-stakes = ["S5", "S6"]
-reason = "no owner document records a sacrifice on this axis yet"
-forge_when = "a decision record names what completion gave up"
+why = "no value test or non-goal represents this user"
+forge_when = "the loss recurs and has an independent payer" # optional
 ```
 
-`unrepresented` is a first-class result. Do not invent a stance to remove it.
-`deferred_axis` needs a semantic reason and a forge condition; a stance count is
-not a reason.
+This is a first-class outcome, not a validation gap to fill with an invented
+stance. Assign every row an id so a decision can name it as `sacrificed`.
 
-## What the lint reads
+## Pass documents
 
-`lint_review_graph.py` reads two things:
+`route --pass SLUG` requires route status `ok`, a lowercase kebab-case slug, and
+a change selection other than `--all`. It writes
+`<reviews_dir>/<YYYY-MM-DD>-<slug>.md` with TOML front matter enclosed by `+++`:
 
-- the structured metadata in `.agents/review-graph.toml`;
-- the generated registry and discovery map, to check they match the graph.
+```toml
+status = "draft" # draft | survey | record | abandoned
+target = ""
+changed = ["src/example.py"]
+baseline = { "src/example.py" = "<blob-sha1>" }
+dirty_at_bind = { "docs/other.md" = "<blob-sha1>" }
+axes = ["proof-vs-cost"]
+stances = ["example-proof-stance", "example-cost-stance"]
+included = [{ axis = "proof-vs-cost", reason = "changed contract" }]
+skipped = [{ axis = "other-axis", reason = "not reviewed" }]
+decisions = []
+reason = ""
+rebaselined = []
+```
 
-It does **not** read `*-stance/SKILL.md` or `*-review/SKILL.md`. Those are
-authored prose, and a string or regex match cannot decide whether a surface has
-taken back a verdict, whether a stance is seeded with its author's findings, or
-whether an axis is genuinely contended. Those are semantic review questions for
-`hydra-crux-review` or the migration prose audit.
+`baseline` contains each changed path's blob SHA-1, or `"absent"` when the path
+does not exist. `dirty_at_bind` records other dirty files outside `reviews_dir`,
+so a later stash does not make them look new. The body starts with four empty
+sections:
 
-## What the validator checks
+```markdown
+## Findings
 
-- ids are unique and references exist;
-- every stance is in at least one opposition and names its opponents as payers;
-- every surface has a stance or an unopposed stake;
-- every represented stake is named by a stance, and every unopposed stake is not;
-- every opposition has a recorded sacrifice and both sides;
-- every decision has an owner, status, reopen condition, and route scope;
-- every evidence row has date, pass, conflict, effect, a unique pass, and
-  well-formed skipped rows;
-- every counterexample has pattern, caught_by, and status, with caught_by a
-  known stance/surface id or `all` / `all stances`;
-- generated registry and discovery map match the graph.
+## Ledger
 
-It does **not** read stance or surface prose. Whether a payer is real, whether a
-sacrifice is acceptable, whether a surface check is good, whether a surface has
-taken back a verdict, or whether an axis is genuinely contended are semantic
-review questions. Do not add string or regex rules for them to the lint.
+## Map candidates
+
+## Counterexample candidates
+```
+
+### Status and target changes
+
+- `draft` is bound but unfinished.
+- `survey` is finished without target changes or graph decisions.
+- `record` is finished after a target change or with at least one decision.
+- `abandoned` stops the pass and requires `reason`.
+
+The target has changed when a `changed` path's current blob differs from
+`baseline`, or a new dirty path appears outside `changed`, `dirty_at_bind`, and
+`reviews_dir`. Blobs recorded in `dirty_at_bind` do not themselves count as a
+later change.
+
+Rebinding an unchanged draft rewrites its route selections while preserving the
+body and baseline. For a newly added changed path, use its `dirty_at_bind` blob,
+or its current blob when clean; if it is currently dirty and was not recorded,
+the target has changed. Rebinding a non-draft or changed target is rejected, and
+a rebind cannot shrink `changed`.
+
+`--pass` needs a non-empty `changed` list of files, not directories, and cannot
+be combined with `--project-root`.
+
+`--rebaseline REASON` deliberately establishes a new baseline for an existing
+pass document that is not in HEAD. It preserves status and body, refreshes
+`baseline` and `dirty_at_bind`, and appends `{reason, date}` to `rebaselined`.
+A document already in HEAD cannot be rebound or rebaselined. Rebaselining leaves
+an audit trail; it does not make target edits disappear.
+
+## Install the lint hook
+
+For pre-commit, register this hook with the project's other hooks:
+
+```yaml
+- id: hydra-crux-lint
+  name: Hydra Crux lint
+  language: system
+  always_run: true
+  pass_filenames: false
+  entry: sh -c 'exec python3 "${HYDRA_CRUX_SKILL:-$HOME/.agents/skills/hydra-crux}/scripts/hydra_graph.py" lint'
+```
+
+Use the same fields in `prek.toml`. This TOML basic string escapes the nested
+double quotes while preserving the shell's single quotes:
+
+```toml
+entry = "sh -c 'exec python3 \"${HYDRA_CRUX_SKILL:-$HOME/.agents/skills/hydra-crux}/scripts/hydra_graph.py\" lint'"
+```
+
+The hook is a backstop; the agent still runs lint itself.
+
+## What lint checks
+
+Run:
+
+```sh
+python3 "$HYDRA/scripts/hydra_graph.py" --graph .agents/review-graph.toml lint
+```
+
+Lint finds and validates the graph, then checks:
+
+1. **Schema:** global ids, known fields and references, enum values, stance and
+   surface ownership, opposition decisions, and kind-specific decision rules.
+2. **Structured paths:** stake evidence, surface owner documents, stance and
+   surface skills, and decision owner documents exist after stripping anchors
+   and are not ignored by git. `reviews_dir` must not be ignored.
+3. **Registry:** the generated registry matches the graph and skill paths.
+4. **Pass documents:** every `.md` directly inside `reviews_dir`, without
+   recursion, has parseable TOML front matter.
+
+For a pass document already in HEAD whose HEAD version was not `draft`, lint
+only parses it and rejects a current return to `draft`. For a new document, or
+one whose HEAD version was `draft`, lint performs the full check:
+
+- fields, enums, and referenced ids are valid;
+- HEAD and current versions both being `draft` is a committed-draft error;
+- a changed target requires current status `record` or `abandoned`;
+- `record` requires a changed target or a non-empty `decisions` list, and
+  `survey` requires an empty one;
+- `survey` and `record` require non-empty `target` and `## Ledger`;
+- `abandoned` requires `reason`, and a changed target produces a warning;
+- every `rebaselined` entry is printed.
+
+A formatting-induced target change is repaired deliberately with
+`route --pass SLUG --rebaseline REASON`, not by hiding the change. Outside a git
+work tree, lint compares blobs for drafts, only parses other statuses, and
+prints the reduced-check notice.
+
+Exit codes are 0 for success, 1 for a lint violation, and 2 for no graph or a
+usage error. Lint reads graph metadata, generated output, structured paths, and
+pass documents. It does not classify stance or surface prose: whether a payer is
+real, a stance is preloaded, a check is useful, or a surface contains a verdict
+requires semantic review, never a string or regex verdict.

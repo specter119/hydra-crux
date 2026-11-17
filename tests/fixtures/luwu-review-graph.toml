@@ -1,178 +1,78 @@
-# Luwu review graph: test fixture for topology and routing.
-#
-# The stance and surface prose is not shipped. This graph records the
-# relationships, the payers, the decisions a route must re-check, and the stakes
-# nobody represents yet.
-#
-# Paths are relative to the Luwu project. The fixture is validated without path
-# existence because it lives in the hydra-crux repository.
-
-version = 1
+# Luwu v2 review graph: test fixture for topology and routing.
+# Paths are relative to the Luwu project; lint tests provide a stub tree.
+version = 2
 project = "luwu"
-
-[migration]
-source = "Luwu 0cdc498"
-old_stance_count = 5
-new_stance_count = 9
-note = "authority-vs-completion and equivalence-vs-noise were deferred by a five-stance working range. The owner documents already record sacrifices on both axes, so they are forged here. Nine is the result, not a quota."
 
 [[stake]]
 id = "S1"
 objective = "Nothing is written unless the exact bytes and identities that authorize it were re-read and re-verified at the write boundary; observation never writes."
-evidence = [
-  "AGENTS.md#cross-cutting-handling-boundaries",
-  "docs/product.md#value-tests",
-  "docs/design.md#end-to-end-flow",
-  "docs/reference.md#finite-batch-freshness-and-verification",
-]
-status = "represented"
+evidence = ["AGENTS.md#cross-cutting-handling-boundaries", "docs/product.md#value-tests", "docs/design.md#end-to-end-flow", "docs/reference.md#finite-batch-freshness-and-verification"]
 
 [[stake]]
 id = "S2"
 objective = "A profile-scale run stays inside measured budgets with durability and verification counted in, and cost must not grow as actions times directories."
-evidence = [
-  "docs/maintenance.md#performance-acceptance",
-  "docs/design.md",
-]
-status = "represented"
+evidence = ["docs/maintenance.md#performance-acceptance", "docs/design.md"]
 
 [[stake]]
 id = "S3"
 objective = "Sensitive values and external capability stay out of repositories, persistence, caches, logs and machine-readable output, and fail closed when uncertain."
-evidence = [
-  "AGENTS.md",
-  "docs/product.md#product-non-goals",
-  "docs/reference.md#provider-owned-fields",
-  "docs/design.md#rejected-alternatives",
-]
-status = "represented"
+evidence = ["AGENTS.md", "docs/product.md#product-non-goals", "docs/reference.md#provider-owned-fields", "docs/design.md#rejected-alternatives"]
 
 [[stake]]
 id = "S4"
 objective = "A later person or agent can tell what happened, why, and what safe action continues, from honest machine-readable results and continuous provenance."
-evidence = [
-  "docs/product.md#value-tests",
-  "docs/reference.md#finite-batch-freshness-and-verification",
-]
-status = "represented"
+evidence = ["docs/product.md#value-tests", "docs/reference.md#finite-batch-freshness-and-verification"]
 
 [[stake]]
 id = "S5"
 objective = "Who may change a value stays declared and answerable; undeclared or conflicting content is never adopted by a default, force, or precedence rule."
-evidence = [
-  "docs/product.md#product-non-goals",
-  "AGENTS.md",
-  "docs/reference.md#baselines-adoption-and-explicit-mutation",
-  "docs/reference.md#writing-undeclared-changes-back-to-a-template-source",
-]
-status = "represented"
+evidence = ["docs/product.md#product-non-goals", "AGENTS.md", "docs/reference.md#baselines-adoption-and-explicit-mutation", "docs/reference.md#writing-undeclared-changes-back-to-a-template-source"]
 
 [[stake]]
 id = "S6"
 objective = "The routine loop must finish on a real profile without hand-edited files or deleted baselines, and the previous manager must become genuinely removable."
-evidence = [
-  "docs/roadmap.md#m7a-daily-loop-usability",
-  "docs/status.md#daily-loop-changes",
-  "docs/roadmap.md#m9-real-project-migration-qualification",
-  "docs/reference.md#commands",
-]
-status = "represented"
+evidence = ["docs/roadmap.md#m7a-daily-loop-usability", "docs/status.md#daily-loop-changes", "docs/roadmap.md#m9-real-project-migration-qualification", "docs/reference.md#commands"]
 
 [[stake]]
 id = "S7"
 objective = "Act without damaging undeclared content, permissions or links, and without adding durable state of Luwu's own: a fresh plan is the recovery step."
-evidence = [
-  "AGENTS.md",
-  "docs/design.md#rejected-alternatives",
-  "docs/reference.md#finite-batch-freshness-and-verification",
-  "docs/reference.md#commands",
-]
-status = "represented"
+evidence = ["AGENTS.md", "docs/design.md#rejected-alternatives", "docs/reference.md#finite-batch-freshness-and-verification", "docs/reference.md#commands"]
 
 [[stake]]
 id = "S8"
 objective = "Two representations are equal only on format or parser evidence, and unsupported syntax is preserved or refused rather than normalized away."
-evidence = [
-  "docs/product.md#a-boundary-for-future-implementation",
-  "docs/reference.md#structured-formats-and-field-comparison",
-  "docs/reference.md#writing-undeclared-changes-back-to-a-template-source",
-  "docs/design.md#rejected-alternatives",
-]
-status = "represented"
+evidence = ["docs/product.md#a-boundary-for-future-implementation", "docs/reference.md#structured-formats-and-field-comparison", "docs/reference.md#writing-undeclared-changes-back-to-a-template-source", "docs/design.md#rejected-alternatives"]
 
 [[stake]]
 id = "S9"
 objective = "Only consequential differences reach the operator; incidental text, formatting, and converged state must not present themselves as drift."
-evidence = [
-  "docs/product.md#what-luwu-is-becoming",
-  "docs/product.md#value-tests",
-  "docs/product.md#a-boundary-for-future-implementation",
-  "docs/design.md#observation-and-semantic-comparison",
-]
-status = "represented"
-
-[[stake]]
-id = "S10"
-objective = "One implementation per primitive, enforced by a test whose ceilings may only go down."
-evidence = [
-  "docs/design.md#shared-primitives",
-  "tests/tooling/test_primitive_ownership.py",
-  "docs/maintenance.md#preventing-duplicate-implementations",
-]
-status = "unopposed"
+evidence = ["docs/product.md#what-luwu-is-becoming", "docs/product.md#value-tests", "docs/product.md#a-boundary-for-future-implementation", "docs/design.md#observation-and-semantic-comparison"]
 
 [[stake]]
 id = "S11"
 objective = "A capability is understandable from its current form in one place, without replaying the order in which it was delivered."
-evidence = [
-  "AGENTS.md#documentation-ownership",
-  "docs/maintenance.md#test-layout",
-  "docs/maintenance.md#run-output",
-]
-status = "unopposed"
+evidence = ["AGENTS.md#documentation-ownership", "docs/maintenance.md#test-layout", "docs/maintenance.md#run-output"]
 
 [[stake]]
 id = "S12"
 objective = "Every claim is labelled as planned, implemented, historical, or verified-by-what, and no completion statement is carried forward unrevalidated."
-evidence = [
-  "AGENTS.md#role-and-authority",
-  "docs/roadmap.md#roadmap-completion-rule",
-  "docs/status.md",
-]
-status = "unopposed"
+evidence = ["AGENTS.md#role-and-authority", "docs/roadmap.md#roadmap-completion-rule", "docs/status.md"]
 
 [[surface]]
 id = "luwu-boundary-review"
 title = "Luwu boundary review"
-trigger = [
-  "path validation, symlinks, target writes, atomicity, permissions, TOCTOU races, temporary files, or recoverability",
-]
-owner_documents = [
-  "AGENTS.md#cross-cutting-handling-boundaries",
-  "docs/reference.md#finite-batch-freshness-and-verification",
-  "docs/design.md#end-to-end-flow",
-]
+trigger = ["path validation, symlinks, target writes, atomicity, permissions, TOCTOU races, temporary files, or recoverability"]
+owner_documents = ["AGENTS.md#cross-cutting-handling-boundaries", "docs/reference.md#finite-batch-freshness-and-verification", "docs/design.md#end-to-end-flow"]
 skill = ".agents/skills/luwu-boundary-review/SKILL.md"
 contends = ["proof-vs-cost", "footprint-vs-recovery"]
-paths = [
-  "src/luwu/filesystem.py",
-  "src/luwu/paths.py",
-  "tests/filesystem/**",
-  "tests/interruption/**",
-]
+paths = ["src/luwu/filesystem.py", "src/luwu/paths.py", "tests/filesystem/**", "tests/interruption/**"]
 keywords = ["symlink", "atomic", "permission", "TOCTOU", "temporary", "fsync"]
 
 [[surface]]
 id = "luwu-coherence-review"
 title = "Luwu coherence review"
-trigger = [
-  "organization, tests, fixtures, docs, experiments, artifacts, or delivery labels",
-]
-owner_documents = [
-  "AGENTS.md#documentation-ownership",
-  "docs/maintenance.md#test-layout",
-  "docs/maintenance.md#run-output",
-]
+trigger = ["organization, tests, fixtures, docs, experiments, artifacts, or delivery labels"]
+owner_documents = ["AGENTS.md#documentation-ownership", "docs/maintenance.md#test-layout", "docs/maintenance.md#run-output"]
 skill = ".agents/skills/luwu-coherence-review/SKILL.md"
 unopposed_stake = "S11"
 paths = ["tests/**", "docs/**", "experiments/**"]
@@ -181,134 +81,53 @@ keywords = ["delivery", "milestone", "fixture", "changelog", "label"]
 [[surface]]
 id = "luwu-confidentiality-review"
 title = "Luwu confidentiality review"
-trigger = [
-  "secrets, providers, template inputs, logs, JSON, persistence, caches, diffs, subprocesses, network, or debug output",
-]
-owner_documents = [
-  "AGENTS.md",
-  "docs/reference.md#provider-owned-fields",
-  "docs/design.md#rejected-alternatives",
-]
+trigger = ["secrets, providers, template inputs, logs, JSON, persistence, caches, diffs, subprocesses, network, or debug output"]
+owner_documents = ["AGENTS.md", "docs/reference.md#provider-owned-fields", "docs/design.md#rejected-alternatives"]
 skill = ".agents/skills/luwu-confidentiality-review/SKILL.md"
 contends = ["exposure-vs-continuity"]
-paths = [
-  "src/luwu/sensitivity.py",
-  "src/luwu/providers.py",
-  "src/luwu/records.py",
-  "tests/providers/**",
-]
+paths = ["src/luwu/sensitivity.py", "src/luwu/providers.py", "src/luwu/records.py", "tests/providers/**"]
 keywords = ["secret", "provider", "log", "cache", "redact", "stderr"]
 
 [[surface]]
 id = "luwu-consent-review"
 title = "Luwu consent review"
-trigger = [
-  "inspect, plan, apply, confirmation, dry-run, stale state, verification, or mutation",
-]
-owner_documents = [
-  "docs/reference.md#commands",
-  "docs/reference.md#finite-batch-freshness-and-verification",
-]
+trigger = ["inspect, plan, apply, confirmation, dry-run, stale state, verification, or mutation"]
+owner_documents = ["docs/reference.md#commands", "docs/reference.md#finite-batch-freshness-and-verification"]
 skill = ".agents/skills/luwu-consent-review/SKILL.md"
-contends = [
-  "proof-vs-cost",
-  "exposure-vs-continuity",
-  "authority-vs-completion",
-  "footprint-vs-recovery",
-]
-paths = [
-  "src/luwu/cli.py",
-  "src/luwu/apply.py",
-  "src/luwu/plan.py",
-  "tests/apply/**",
-]
+contends = ["proof-vs-cost", "exposure-vs-continuity", "authority-vs-completion", "footprint-vs-recovery"]
+paths = ["src/luwu/cli.py", "src/luwu/apply.py", "src/luwu/plan.py", "tests/apply/**"]
 keywords = ["apply", "confirm", "dry-run", "stale", "plan", "preview"]
 
 [[surface]]
 id = "luwu-ownership-review"
 title = "Luwu ownership review"
-trigger = [
-  "ownership, scope, provenance, adoption, precedence, provider, live state, reverse sync, or conflict",
-]
-owner_documents = [
-  "docs/product.md#product-non-goals",
-  "docs/reference.md#baselines-adoption-and-explicit-mutation",
-  "docs/reference.md#writing-undeclared-changes-back-to-a-template-source",
-]
+trigger = ["ownership, scope, provenance, adoption, precedence, provider, live state, reverse sync, or conflict"]
+owner_documents = ["docs/product.md#product-non-goals", "docs/reference.md#baselines-adoption-and-explicit-mutation", "docs/reference.md#writing-undeclared-changes-back-to-a-template-source"]
 skill = ".agents/skills/luwu-ownership-review/SKILL.md"
 contends = ["authority-vs-completion"]
-paths = [
-  "src/luwu/manifest.py",
-  "src/luwu/ownership.py",
-  "src/luwu/reverse.py",
-  "tests/reverse/**",
-]
+paths = ["src/luwu/manifest.py", "src/luwu/ownership.py", "src/luwu/reverse.py", "tests/reverse/**"]
 keywords = ["owner", "adopt", "precedence", "reverse-sync", "provenance"]
 
 [[surface]]
 id = "luwu-semantic-drift-review"
 title = "Luwu semantic drift review"
-trigger = [
-  "drift detection, rendering, normalization, formatting, parsers, structured comparison, or reverse sync",
-]
-owner_documents = [
-  "docs/product.md#a-boundary-for-future-implementation",
-  "docs/reference.md#structured-formats-and-field-comparison",
-  "docs/design.md#observation-and-semantic-comparison",
-]
+trigger = ["drift detection, rendering, normalization, formatting, parsers, structured comparison, or reverse sync"]
+owner_documents = ["docs/product.md#a-boundary-for-future-implementation", "docs/reference.md#structured-formats-and-field-comparison", "docs/design.md#observation-and-semantic-comparison"]
 skill = ".agents/skills/luwu-semantic-drift-review/SKILL.md"
 contends = ["equivalence-vs-noise"]
-paths = [
-  "src/luwu/semantic.py",
-  "src/luwu/formats.py",
-  "src/luwu/render.py",
-  "tests/formats/**",
-]
+paths = ["src/luwu/semantic.py", "src/luwu/formats.py", "src/luwu/render.py", "tests/formats/**"]
 keywords = ["normalize", "equivalence", "parser", "formatter", "drift"]
 
 [[surface]]
 id = "luwu-verifiability-review"
 title = "Luwu verifiability review"
-trigger = [
-  "feature scope, status, manifests, JSON or error contracts, docs ownership, tests, migrations, rollback, or completion claims",
-]
-owner_documents = [
-  "docs/status.md",
-  "docs/reference.md",
-  "docs/roadmap.md",
-  "docs/product.md",
-]
+trigger = ["feature scope, status, manifests, JSON or error contracts, docs ownership, tests, migrations, rollback, or completion claims"]
+owner_documents = ["docs/status.md", "docs/reference.md", "docs/roadmap.md", "docs/product.md"]
 skill = ".agents/skills/luwu-verifiability-review/SKILL.md"
-contends = [
-  "exposure-vs-continuity",
-  "authority-vs-completion",
-  "equivalence-vs-noise",
-]
+contends = ["exposure-vs-continuity", "authority-vs-completion", "equivalence-vs-noise"]
 unopposed_stake = "S12"
-paths = [
-  "docs/status.md",
-  "docs/roadmap.md",
-  "src/luwu/cli.py",
-  "tests/cli/**",
-]
+paths = ["docs/status.md", "docs/roadmap.md", "src/luwu/cli.py", "tests/cli/**"]
 keywords = ["status", "milestone", "contract", "migration", "rollback", "complete"]
-
-[[surface]]
-id = "luwu-primitive-reuse"
-title = "Luwu primitive reuse"
-trigger = [
-  "before writing or copying file operations, JSON or TOML parsing, baselines or digests, secret names, a shared function that lacks an option, or a fix in one routine that has a second copy",
-]
-owner_documents = [
-  "docs/design.md#shared-primitives",
-  "docs/maintenance.md#preventing-duplicate-implementations",
-  "tests/tooling/test_primitive_ownership.py",
-]
-skill = ".agents/skills/luwu-primitive-reuse/SKILL.md"
-unopposed_stake = "S10"
-phase = "before-write"
-paths = ["src/**", "tests/**"]
-keywords = ["os.open", "os.replace", "json.loads", "tomllib", "duplicate", "shared primitive"]
 
 [[stance]]
 id = "luwu-proof-at-write-stance"
@@ -323,6 +142,12 @@ payer = "luwu-bounded-cost-stance"
 payer_stance = "luwu-bounded-cost-stance"
 cost = "whole-profile proof costs latency and throughput"
 resource = "latency"
+
+[[stance.accepted_harm]]
+payer = "luwu-minimal-exposure-stance"
+payer_stance = "luwu-minimal-exposure-stance"
+cost = "disclosing the observed mode widens the metadata exposed by the projection"
+resource = "metadata exposure"
 
 [[stance]]
 id = "luwu-bounded-cost-stance"
@@ -352,17 +177,18 @@ payer_stance = "luwu-continuable-evidence-stance"
 cost = "metadata-only results hide which undeclared keys differ and in which direction"
 resource = "operator next-step visibility"
 
+[[stance.accepted_harm]]
+payer = "luwu-proof-at-write-stance"
+payer_stance = "luwu-proof-at-write-stance"
+cost = "withholding the live mode leaves the projection unable to prove what was observed"
+resource = "observational proof"
+
 [[stance]]
 id = "luwu-continuable-evidence-stance"
 title = "Luwu continuable evidence stance"
 objective = "A later person or agent can tell what happened, why, and what safe action continues."
 skill = ".agents/skills/luwu-continuable-evidence-stance/SKILL.md"
-surfaces = [
-  "luwu-boundary-review",
-  "luwu-confidentiality-review",
-  "luwu-consent-review",
-  "luwu-verifiability-review",
-]
+surfaces = ["luwu-boundary-review", "luwu-confidentiality-review", "luwu-consent-review", "luwu-verifiability-review"]
 stakes = ["S4"]
 
 [[stance.accepted_harm]]
@@ -451,183 +277,232 @@ resource = "correctness"
 id = "proof-vs-cost"
 stances = ["luwu-proof-at-write-stance", "luwu-bounded-cost-stance"]
 contended_resource = "latency and throughput of one apply over a whole profile"
-recorded_sacrifice = "Cost won twice: per-action expansion is scoped, and later actions no longer compare rendered desired bytes after the first directory creation. Proof won on mtime-only checks, parallel writers, and counting durability inside the budget."
-state = "decided"
 
 [[opposition]]
 id = "exposure-vs-continuity"
 stances = ["luwu-minimal-exposure-stance", "luwu-continuable-evidence-stance"]
 contended_resource = "user-visible surface and correctness of the operator's next step"
-recorded_sacrifice = "Exposure won: no undeclared-value record, no secret digest, no provider cache. Evidence won where it costs no value: plan evidence, replacement flags, skip reason codes, and committed-but-baseline-not-advanced."
-state = "decided"
 
 [[opposition]]
 id = "authority-vs-completion"
 stances = ["luwu-answerable-authority-stance", "luwu-operational-completion-stance"]
 contended_resource = "operator attention and migration cost of moving a real profile"
-recorded_sacrifice = "Completion won inside one resource: apply writes a forward field while a sibling field needs review. Authority won on the generic rule: no force or precedence flag, no whole-file reverse copy, no automatic Dotter conversion."
-state = "decided"
 
 [[opposition]]
 id = "footprint-vs-recovery"
 stances = ["luwu-minimal-footprint-stance", "luwu-continuable-evidence-stance"]
 contended_resource = "reversibility and durability of what a failed run leaves behind"
-recorded_sacrifice = "Footprint won: no transaction engine, journal, durable plan, replay, or rollback; a fresh plan is the recovery step. A SIGKILL between naming and renaming can leave a private temporary file that nothing sweeps."
-state = "decided"
 
 [[opposition]]
 id = "equivalence-vs-noise"
 stances = ["luwu-proven-equivalence-stance", "luwu-quiet-signal-stance"]
 contended_resource = "correctness and the operator attention a false difference costs"
-recorded_sacrifice = "Equivalence won: no generic formatter or schema registry, a lexical TOML patcher with byte-level negative controls, re-render proof before an undeclared write. Quiet won where evidence exists: structured semantic equality and a baseline-only write for a converged template."
-state = "decided"
+
+[[opposition]]
+id = "exposure-vs-proof"
+stances = ["luwu-minimal-exposure-stance", "luwu-proof-at-write-stance"]
+contended_resource = "observational proof and the metadata exposed by the plan projection"
 
 [[unrepresented]]
+id = "platform-reach"
 stake = "platform reach"
 where = "docs/design.md; docs/roadmap.md#m9-real-project-migration-qualification; docs/status.md#provider-fields-and-real-rbw-acceptance"
 why = "openat2 fallbacks, O_TMPFILE without a named fallback, refused executables, and Linux-first qualification spend reach repeatedly, but no value test or non-goal defends it."
 
 [[unrepresented]]
+id = "strong-consistency"
 stake = "strong consistency against non-cooperating writers"
 where = "docs/reference.md#commands; docs/design.md#rejected-alternatives; docs/status.md#verified-scope-and-limits"
 why = "Advisory locks, rejected parallel writers, and no snapshot are stated as limits; neither strong consistency nor concurrency has a stance."
 
 [[unrepresented]]
+id = "machine-adaptation"
 stake = "machine adaptation"
 where = "docs/status.md#current-capability-matrix; docs/product.md#the-problem"
 why = "Profiles have explicit selection and no platform detection, while the product problem starts from different machines having different boundaries. One declaration for several machines has no owner."
 
 [[unrepresented]]
+id = "human-facing-surface"
 stake = "the human-facing surface"
 where = "docs/product.md#what-luwu-is-becoming"
 why = "The product asks for people and agents to be served equally and for a quiet, bookish voice, but every contract surface is a metadata-only JSON projection. S4 is satisfied by machine output alone."
 
 [[unrepresented]]
+id = "guard-apparatus-cost"
 stake = "the cost of the guard apparatus itself"
 where = "AGENTS.md#documentation-ownership; docs/maintenance.md#performance-acceptance"
 why = "Review cost is a named resource the project spends freely: review surfaces, ablations, ceilings, whole-byte rechecks, and a documentation ownership table. No stance defends review cost, diff size, or guard maintenance."
 
-[[resolved]]
-conflict = "C-1a: the plan must not report a narrow effective_mode for a wide live file"
-resolution = "Disclose the live mode in the projection and take effective_mode from the observation. Adds no write, so skipped means untouched is untouched."
-serves = "both: exposure gets the missing fact, proof keeps the guarantee"
-evidence = "docs/decisions/c-1a-disclosure-buffer.md"
+[[unrepresented]]
+id = "primitive-reuse"
+stake = "One implementation per primitive, enforced by a test whose ceilings may only go down."
+where = "docs/design.md#shared-primitives; docs/maintenance.md#preventing-duplicate-implementations; tests/tooling/test_primitive_ownership.py"
+why = "Primitive reuse is a before-write prevention check, not a review surface with an opposing stance."
+
+[[unrepresented]]
+id = "older-manifest-compatibility"
+stake = "compatibility for older manifests"
+where = "docs/design.md#rejected-alternatives"
+why = "Three engines with copied primitives let the copies drift, so manifest versions 1-7 were retired."
+
+[[unrepresented]]
+id = "droid-workspace-trust"
+stake = "real Droid profiles using Luwu for workspace trust"
+where = "docs/design.md#rejected-alternatives"
+why = "No stable public Droid file schema could be verified."
+
+[[decision]]
+id = "C-1a"
+kind = "joint"
+summary = "Disclose the live mode in the projection and take effective_mode from the observation; skipped means untouched remains true."
 owner_document = "docs/decisions/c-1a-disclosure-buffer.md"
-status = "decided_not_implemented"
 reopen_when = "the projection or the skipped-means-untouched contract changes"
-axes = ["exposure-vs-continuity"]
+axes = ["exposure-vs-proof"]
 stances = ["luwu-minimal-exposure-stance", "luwu-proof-at-write-stance"]
 surfaces = ["luwu-confidentiality-review", "luwu-verifiability-review"]
 
-[[open_conflict]]
-conflict = "C-1b: mode repair versus skipped means untouched"
-pair = "luwu-minimal-exposure-stance vs luwu-proof-at-write-stance"
-status = "open: awaiting user decision"
-owner = "the user; no agent may pick this horn"
+[[decision]]
+id = "C-1b"
+kind = "open"
+summary = "Mode repair versus skipped means untouched is awaiting a user decision."
+owner_document = "docs/decisions/c-1a-disclosure-buffer.md"
 reopen_when = "the user decides whether mode repair is a write"
-axes = ["exposure-vs-continuity"]
+owner = "user"
+next_action = "Decide whether mode repair is a write; no agent may pick this horn."
+axes = ["exposure-vs-proof"]
 stances = ["luwu-minimal-exposure-stance", "luwu-proof-at-write-stance"]
 surfaces = ["luwu-confidentiality-review", "luwu-consent-review"]
 
-[[open_conflict]]
-conflict = "C-2: plan-time verdict versus boundary-time read"
-pair = "luwu-proof-at-write-stance vs luwu-bounded-cost-stance"
-status = "measurement blocked: the harness is broken"
-owner = "repair experiments/profile_benchmark.py, then run attempt 1"
+[[decision]]
+id = "C-2"
+kind = "open"
+summary = "Plan-time verdict versus boundary-time read is blocked by a broken measurement harness."
+owner_document = "docs/maintenance.md#performance-acceptance"
 reopen_when = "one digest read per action is measured against the performance gates"
+owner = "luwu maintainers"
+next_action = "Repair experiments/profile_benchmark.py, then run attempt 1."
 axes = ["proof-vs-cost"]
 stances = ["luwu-proof-at-write-stance", "luwu-bounded-cost-stance"]
 surfaces = ["luwu-boundary-review", "luwu-verifiability-review"]
 
-[[sacrifice]]
-decision = "Per-action desired-bytes re-render dropped once a directory exists"
-sacrificed = "luwu-proof-at-write-stance"
-given_up = "whole-profile proof of rendered desired bytes for later actions"
-why = "loop cost; recorded as a limit rather than argued"
+[[decision]]
+id = "C-3"
+kind = "sacrifice"
+summary = "Per-action desired-bytes re-render was dropped once a directory exists because of loop cost."
 owner_document = "docs/status.md#daily-loop-changes"
-status = "implemented"
 reopen_when = "a later action can write a rendered value the first directory creation did not prove"
+status = "implemented"
+given_up = "whole-profile proof of rendered desired bytes for later actions"
+decided_by = "user"
+sacrificed = "luwu-proof-at-write-stance"
 axes = ["proof-vs-cost"]
 stances = ["luwu-proof-at-write-stance"]
 surfaces = ["luwu-boundary-review"]
 
-[[sacrifice]]
-decision = "No undeclared-value record; --undeclared PATH"
-sacrificed = "luwu-continuable-evidence-stance"
-given_up = "the operator-visible answer to which undeclared keys differ, and which way"
-why = "sensitive-value exposure"
+[[decision]]
+id = "C-4"
+kind = "sacrifice"
+summary = "No undeclared-value record is kept; --undeclared PATH avoids sensitive-value exposure."
 owner_document = "docs/reference.md#writing-undeclared-changes-back-to-a-template-source"
-status = "implemented"
 reopen_when = "a non-secret representation can answer the question without exposing values"
+status = "implemented"
+given_up = "the operator-visible answer to which undeclared keys differ, and which way"
+decided_by = "user"
+sacrificed = "luwu-continuable-evidence-stance"
 axes = ["exposure-vs-continuity"]
 stances = ["luwu-continuable-evidence-stance"]
 surfaces = ["luwu-confidentiality-review", "luwu-consent-review"]
 
-[[sacrifice]]
-decision = "No journal, durable plan, replay, or rollback"
-sacrificed = "luwu-continuable-evidence-stance"
-given_up = "resume or rollback after an interrupted run, and a sweep for SIGKILL residue"
-why = "minimal footprint; a fresh plan is the recovery step"
+[[decision]]
+id = "C-5"
+kind = "sacrifice"
+summary = "No journal, durable plan, replay, or rollback is kept; a fresh plan is the recovery step."
 owner_document = "docs/design.md#rejected-alternatives"
-status = "implemented"
 reopen_when = "an interrupted run can leave a state a fresh plan cannot recover"
+status = "implemented"
+given_up = "resume or rollback after an interrupted run, and a sweep for SIGKILL residue"
+decided_by = "user"
+sacrificed = "luwu-continuable-evidence-stance"
 axes = ["footprint-vs-recovery"]
 stances = ["luwu-continuable-evidence-stance"]
 surfaces = ["luwu-boundary-review", "luwu-consent-review"]
 
-[[sacrifice]]
-decision = "Manifest versions 1-7 retired"
-sacrificed = "unrepresented: compatibility for older manifests"
-given_up = "compatibility for older manifests"
-why = "three engines with copied primitives let the copies drift"
+[[decision]]
+id = "C-6"
+kind = "sacrifice"
+summary = "Manifest versions 1-7 were retired because three engines with copied primitives drifted."
 owner_document = "docs/design.md#rejected-alternatives"
-status = "implemented"
 reopen_when = "a real profile cannot migrate without an old manifest"
-surfaces = ["luwu-ownership-review", "luwu-verifiability-review"]
-
-[[sacrifice]]
-decision = "Droid workspace trust unsupported"
-sacrificed = "unrepresented: real Droid profiles using Luwu for workspace trust"
-given_up = "real Droid profiles using Luwu for workspace trust"
-why = "no stable public file schema could be verified"
-owner_document = "docs/design.md#rejected-alternatives"
 status = "implemented"
-reopen_when = "a stable public Droid file schema can be verified"
+given_up = "compatibility for older manifests"
+decided_by = "user"
+sacrificed = "older-manifest-compatibility"
 surfaces = ["luwu-ownership-review", "luwu-verifiability-review"]
 
-[[evidence]]
-date = "2026-11-11"
-pass = "Stake discovery from owner documents and review-skill scope clauses"
-conflict = "12 stakes, 5 backed oppositions, 6 ownerless themes"
-effect = "Axes established"
+[[decision]]
+id = "C-7"
+kind = "sacrifice"
+summary = "Droid workspace trust is unsupported because no stable public file schema could be verified."
+owner_document = "docs/design.md#rejected-alternatives"
+reopen_when = "a stable public Droid file schema can be verified"
+status = "implemented"
+given_up = "real Droid profiles using Luwu for workspace trust"
+decided_by = "user"
+sacrificed = "droid-workspace-trust"
+surfaces = ["luwu-ownership-review", "luwu-verifiability-review"]
 
-[[evidence]]
-date = "2026-11-13"
-pass = "Second pass: 5 independent local reviewers over 0cdc498, with bounded contests"
-conflict = "28 findings: 10 accepted survey buffers, 3 open evidence or design questions, 5 independent defects, 6 prior sacrifices, 3 C-2 cases, 1 C-1b companion"
-effect = "Survey recorded; no product-code fix adopted or verified"
+[[decision]]
+id = "C-8"
+kind = "sacrifice"
+summary = "No force or precedence flag, whole-file reverse copy, or automatic Dotter conversion is allowed; answerable authority wins the generic migration rule."
+owner_document = "docs/reference.md#baselines-adoption-and-explicit-mutation"
+reopen_when = "a migration can preserve declared authority without an operator decision for each conflict"
+status = "implemented"
+given_up = "automatic whole-profile migration through undeclared or conflicting content"
+decided_by = "user"
+sacrificed = "luwu-operational-completion-stance"
+axes = ["authority-vs-completion"]
+stances = ["luwu-operational-completion-stance"]
+surfaces = ["luwu-ownership-review", "luwu-consent-review"]
 
-[[counterexample]]
-pattern = "A document promises a compensating control the code does not implement"
-caught_by = "luwu-minimal-exposure-stance"
-status = "open: C-1"
+[[decision]]
+id = "C-9"
+kind = "sacrifice"
+summary = "Apply may write a forward field while a sibling field needs review; completion wins only inside that declared resource scope."
+owner_document = "docs/status.md#daily-loop-changes"
+reopen_when = "a forward-field write can hide a sibling conflict or escape its declared resource scope"
+status = "implemented"
+given_up = "a consent stop for every sibling field inside a resource that already has declared authority"
+decided_by = "user"
+sacrificed = "luwu-answerable-authority-stance"
+axes = ["authority-vs-completion"]
+stances = ["luwu-answerable-authority-stance"]
+surfaces = ["luwu-consent-review"]
 
-[[counterexample]]
-pattern = "A time window stands in for an evidence check"
-caught_by = "luwu-proof-at-write-stance"
-status = "open: C-2"
+[[decision]]
+id = "C-10"
+kind = "sacrifice"
+summary = "No generic formatter or schema registry is adopted; byte-level negative controls and re-render proof win where equivalence is unproven."
+owner_document = "docs/reference.md#structured-formats-and-field-comparison"
+reopen_when = "format or parser evidence can prove equivalence without maintaining a generic normalization layer"
+status = "implemented"
+given_up = "quiet output for syntax whose equivalence has not been proven"
+decided_by = "user"
+sacrificed = "luwu-quiet-signal-stance"
+axes = ["equivalence-vs-noise"]
+stances = ["luwu-quiet-signal-stance"]
+surfaces = ["luwu-semantic-drift-review"]
 
-[[counterexample]]
-pattern = "A limit is stated as a fact rather than an argument"
-caught_by = "all stances"
-status = "open: 15 instances"
-
-[[counterexample]]
-pattern = "A per-call timeout is presented as a command budget"
-caught_by = "luwu-bounded-cost-stance"
-status = "survey: accepted buffer"
-
-[[counterexample]]
-pattern = "A resource-scoped check hides a full-profile computation"
-caught_by = "luwu-bounded-cost-stance"
-status = "survey: accepted buffer"
+[[decision]]
+id = "C-11"
+kind = "sacrifice"
+summary = "Structured semantic equality and a baseline-only write suppress converged differences where format evidence exists; quiet signal wins that bounded case."
+owner_document = "docs/design.md#observation-and-semantic-comparison"
+reopen_when = "structured equality or a baseline-only write can hide an unsupported semantic difference"
+status = "implemented"
+given_up = "byte-level proof for converged differences covered by structured semantic equality"
+decided_by = "user"
+sacrificed = "luwu-proven-equivalence-stance"
+axes = ["equivalence-vs-noise"]
+stances = ["luwu-proven-equivalence-stance"]
+surfaces = ["luwu-semantic-drift-review"]

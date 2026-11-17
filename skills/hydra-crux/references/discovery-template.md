@@ -1,12 +1,9 @@
 # Discovery template
 
-The canonical discovery map is generated from `.agents/review-graph.toml` into
-`docs/stances.md`. Use this template to collect the evidence **before** writing
-the graph. The generated map is the readable view; the graph is the topology.
-
-A map that lives only in a scratch or ignored directory cannot be cited by the
-registry later, and a later reader cannot tell whether a pair was argued or
-assumed.
+Use this worksheet to collect evidence **before** writing
+`.agents/review-graph.toml`. It is an authoring aid, not generated output. Keep
+the cited evidence in durable owner documents so a later reader can distinguish
+an argued pair from an assumed one.
 
 ## 1. Stakes
 
@@ -17,60 +14,57 @@ must be `path#section`, not a paraphrase.
 | --- | -------------------- | ------------------ | ----------------------------------- |
 | S1  | <objective>          | `<path>#<section>` | <a concrete change to this project> |
 
-A row is rejected if the evidence is a subsystem name, a module, or a generic
-virtue with no tradeoff attached. "The parser must be good" is not a stake.
+Reject a row whose evidence is only a subsystem, module, or generic virtue with
+no tradeoff. "The parser must be good" is not a stake.
 
 ## 2. Oppositions
 
-One row per pair. Every column is required; see the four-part rule in the forge
-skill's step 2.
+One row per candidate pair; see the opposition test in
+[stance-design.md](stance-design.md#the-opposition-test).
 
-| Pair     | Contended resource    | A demands | B resists         | B demands | A resists         | Recorded decision                     |
-| -------- | --------------------- | --------- | ----------------- | --------- | ----------------- | ------------------------------------- |
-| S1 vs S2 | <quantity or surface> | <change>  | <what B protects> | <change>  | <what A protects> | `<path>#<section>`, or `hypothetical` |
+| Pair     | Contended resource    | A demands | B resists         | B demands | A resists         | Decision evidence  |
+| -------- | --------------------- | --------- | ----------------- | --------- | ----------------- | ------------------ |
+| S1 vs S2 | <quantity or surface> | <change>  | <what B protects> | <change>  | <what A protects> | `<path>#<section>` |
 
-A pair whose `Recorded decision` is `hypothetical` is kept and marked, and does
-not count as settled until a change exercises it.
+Every forged opposition needs at least one graph decision. If the choice is not
+settled, record an open decision with an owner and next action rather than
+calling a hypothetical joint outcome settled.
 
 ## 3. Surfaces and contention
 
-One row per surface. A surface is a place to look, not a value. `Contends` names
-the axes the surface actually exercises; this is what keeps a local change
-local. `Owner` is either the stances that read it or an unopposed stake.
+A surface is a place to look, not a value. `Contends` names only the axes its
+checks exercise. `Owner` is either a stance reader or an unopposed stake.
 
-| Surface                      | Owner (stances or unopposed stake) | Contends | Route hints            |
-| ---------------------------- | ---------------------------------- | -------- | ---------------------- |
-| `<project>-<surface>-review` | `<stance>` or `unopposed: S<n>`    | `<axis>` | `<paths and keywords>` |
+| Surface                      | Owner                           | Contends | Route hints                         |
+| ---------------------------- | ------------------------------- | -------- | ----------------------------------- |
+| `<project>-<surface>-review` | `<stance>` or `unopposed: S<n>` | `<axis>` | `<paths, exclusions, and keywords>` |
 
-A surface may serve several stances and an unopposed stake at the same time. That
-is not a contradiction; it means the check protects more than one interest.
-A surface is not created to give a stance a partner, and one stance may read
-several surfaces.
+A surface may serve several stances, but each stake is either represented by a
+stance or assigned as an unopposed stake, never both. A surface is not created
+to give a stance a partner.
 
 ## 4. Unopposed stakes
 
-Stakes found with no real opponent. Say why each is unpaired, and what check
-covers it instead. An unopposed stake usually needs a domain review skill, not a
-stance.
+Record stakes with no real opponent and the check that covers each. These
+usually need a surface or test, not a stance.
 
 | Id   | Why unpaired | Check that covers it |
 | ---- | ------------ | -------------------- |
 | S<n> | <reason>     | `<skill or test>`    |
 
-## 5. Missing stakes
+## 5. Unrepresented interests
 
-Decision themes the documents show, that no stake represents. These are the
-places where the set will fail to see a tradeoff, and they are worth recording
-even when nothing is done about them.
+Record real interests with no stance, including candidate axes whose evidence is
+incomplete. Do not omit them because the set already seems large.
 
-| Theme   | Where it appears   | Why no stake holds it |
-| ------- | ------------------ | --------------------- |
-| <theme> | `<path>#<section>` | <reason>              |
+| Interest   | Where it appears   | Why no stance holds it | Forge when                             |
+| ---------- | ------------------ | ---------------------- | -------------------------------------- |
+| <interest> | `<path>#<section>` | <reason>               | <evidence that would justify a stance> |
 
 ## 6. Latent payers
 
-A payer named in a stance's accepted harm that has no stance yet. Record it; do
-not invent a stance to make the graph complete.
+Record a payer named in accepted harm that has no stance yet. Do not invent one
+to make the graph complete.
 
 | Payer                        | What it pays for | Evidence           | Why no stance yet                            |
 | ---------------------------- | ---------------- | ------------------ | -------------------------------------------- |
@@ -78,29 +72,19 @@ not invent a stance to make the graph complete.
 
 ## 7. Candidate stance set
 
-The stances to author, one per side, each naming the pairs it belongs to. A
-stance holds **one** objective in **one** direction; it may belong to more than
-one pair. A stance that owns both sides of a pair is a balanced reviewer, and a
-balanced reviewer finds nothing.
+Author one stance per side, each holding **one** objective in **one** direction.
+A stance may belong to several pairs; a stance that owns both sides is a
+balanced reviewer, not an opposition.
 
 | Stance                     | Objective                        | In pairs |
 | -------------------------- | -------------------------------- | -------- |
 | `<project>-<stake>-stance` | <one direction of one objective> | S1 vs S2 |
 
-There is no target count for any kind. A stance may appear in several pairs; a
-pair may have two or more sides. The count follows the evidence.
+There is no target count for any kind. Merge stances that push the same way on
+every recorded decision; do not merge genuine contention to meet a quota.
 
-## 8. Deferred axes
+## 8. Deviations
 
-Axes considered and not forged. The reason must be semantic; "the set is
-already full" is not a reason.
-
-| Axis   | Stakes   | Reason                      | Forge when                         |
-| ------ | -------- | --------------------------- | ---------------------------------- |
-| <axis> | <stakes> | <missing evidence or owner> | <the evidence that would forge it> |
-
-## 9. Deviations
-
-If authoring departs from this map — a pair dropped, an axis deferred, a stance
-split or merged — record it here with the reason. An unrecorded deviation is how
-a set silently loses the opposition it was built for.
+If authoring departs from this worksheet—a pair dropped, a stance split or
+merged, an interest left unrepresented—record the reason. An unrecorded
+deviation silently loses the opposition the set was built to test.

@@ -16,7 +16,7 @@ before adding the file.
 | `AGENTS.md`                | contributors and agents | scope map, change rules, verification, anti-drift checks   | user-facing marketing, design essays            |
 | `skills/*/SKILL.md`        | the agent at runtime    | the procedure the agent follows                            | project-specific topology, install instructions |
 | `skills/*/references/*.md` | the agent at runtime    | deep procedure, templates, examples linked from `SKILL.md` | duplicated `SKILL.md` content                   |
-| `skills/*/scripts/*.py`    | maintainers             | graph engine, metadata lint, concept audit                 | prose judgment                                  |
+| `skills/*/scripts/*.py`    | maintainers             | graph engine, metadata and pass lint                       | prose judgment                                  |
 | `tests/`                   | maintainers             | verification; fixtures live in `tests/fixtures/`           | shipped examples, stance prose                  |
 | `docs/assets/`             | users                   | images                                                     | text                                            |
 
@@ -34,8 +34,8 @@ own skills.
    runtime steps belong in `README.md` or `SKILL.md`.
 4. **`SKILL.md` does not restate its references.** It links to them and keeps
    the runtime decision small.
-5. **Generated files are generated.** Do not hand-edit the registry or the
-   discovery map; change the graph and regenerate.
+5. **Generated files are generated.** Do not hand-edit the registry; change the
+   graph and regenerate.
 6. **Fixtures are not documentation.** A graph kept only to exercise tests
    lives in `tests/fixtures/` and is not linked from user documentation.
 
@@ -54,8 +54,8 @@ These rules apply to every change in this repository.
 2. **The restriction is scoped to Markdown prose in skills.** Graph metadata,
    TOML/JSON files, and script source are not prose. They may use structural or
    AST-like checks, including pattern matching, when the object is a schema, a
-   reference, a path, or code structure. `lint_review_graph.py` is the model:
-   its object is the graph, not the authored stance text.
+   reference, a path, or code structure. `hydra_graph.py lint` is the model:
+   its object is structured review data, not the authored stance text.
 3. **Prefer structured files for metadata.** An id, a link, a payer, a status,
    a path, or a decision record belongs in `.agents/review-graph.toml` (or
    another TOML/JSON file), not in Markdown prose. Markdown owns argument and
@@ -68,9 +68,9 @@ These rules apply to every change in this repository.
 Structural parsing is not semantic judgment. Using Markdown headings and list
 markers to split a document into sections is parsing. Using the same heading
 text to conclude that everything under it is a check, a verdict, or a scope
-boundary is a semantic judgment and falls under rule 1. When a template is
-known and archived, a structural inventory may record the template's own
-labels; it must not be reused as the semantic classifier for a new skill set.
+boundary is a semantic judgment and falls under rule 1. When a template's
+structure is known, a structural inventory may record its own labels; it must
+not become the semantic classifier for a new skill set.
 
 ## Keeping the skill set honest
 
@@ -83,8 +83,9 @@ into a schema or a quota.
   treat either as proof. The reasoning is in `docs/IDEA.md#no-fixed-count`.
 - **No stance without a decision.** A stance needs a recorded decision it would
   sacrifice for. No decision, no stance.
-- **No invented payer.** If the harmed side has no independent interest, record
-  it as `unrepresented` or `latent_payer`, not as a stance.
+- **No invented payer.** For a real payer without a stance, use `accepted_harm`
+  without `payer_stance`; for an unowned interest, add an `[[unrepresented]]`
+  row. Do not invent a stance.
 - **No surface verdict.** A surface says how to check. If it starts deciding a
   tradeoff, the topology is missing a stance or the surface has absorbed one.
 - **No prose in the graph.** The graph records relationships. The argument
@@ -99,15 +100,16 @@ Before editing, find the scope row. Then follow the matching path.
 1. Name the decision it would sacrifice for and the payer of the harm.
 2. Add the stance, its `accepted_harm`, and its `surfaces` to the graph.
 3. Write the prose in `.agents/skills/<project>-<name>-stance/SKILL.md`.
-4. Regenerate the registry and discovery map.
+4. Regenerate the registry.
 5. Add or update a test that proves the stance fires on a control change.
 
 ### Add or change a surface
 
 1. Name the check and the stance it serves, or the unopposed stake it records.
-2. Add the surface, its `contends`, `paths`, and `keywords` to the graph.
+2. Add the surface, its `contends`, route paths, exclusions, and keywords to the
+   graph.
 3. Write the checks in `.agents/skills/<project>-<name>-surface/SKILL.md`.
-4. Regenerate the registry and discovery map.
+4. Regenerate the registry.
 5. Add a route test for the path it owns.
 
 ### Add a reference
@@ -124,13 +126,13 @@ Before editing, find the scope row. Then follow the matching path.
 4. If the change reverses an earlier decision, say so in the graph, not only in
    a commit message.
 
-### Remove or migrate an old skill
+### Remove an old skill
 
-1. Move it to `archive/`; do not leave it in the discovery path.
-2. Remove its name from `AGENTS.md`, `README.md`, and every entry point.
-3. Extract its stable value before deleting the prose; a renamed file is not a
-   migration.
-4. Add the new home to the graph and regenerate.
+1. Extract its stable checks, evidence, and verdicts before deleting the prose;
+   a renamed file is not a migration.
+2. Delete the old skill and remove its name from `AGENTS.md`, `README.md`, every
+   entry point, and every discovery path. Git history retains the old source.
+3. Add each extracted fact's new home to the graph and regenerate the registry.
 
 ## Verification
 
@@ -139,27 +141,9 @@ Run all four before calling a change done:
 ```bash
 python3 -m unittest discover -s tests
 ruff check skills tests
-bash scripts/lint-skills.sh
+bash scripts/validate-skills.sh
+ty check
 ```
-
-`concept_audit.py` is optional and semantic. It ranks candidates; it does not
-gate a commit. Run it when a first build, a migration, or an evolution changes
-the prose:
-
-```bash
-python3 skills/hydra-crux/scripts/concept_audit.py run \
-  --graph .agents/review-graph.toml \
-  --source AGENTS.md --source README.md --source docs \
-  --out concept-audit.md
-```
-
-For a migration, pass the archived skills instead:
-`--source-dir archive/domain-review`.
-
-Without a config it makes no network call and reports only deterministic
-candidates. With `[decision]` configured it also triages them. It has no LLM
-client by design: the semantic step is the agent reading the report. See
-`skills/hydra-crux/references/concept-audit.md`.
 
 ## Anti-drift checklist
 
@@ -170,13 +154,9 @@ client by design: the semantic step is the agent reading the report. See
 - Is this a new surface? Name the check and the stance it serves.
 - Does a project doc hardcode the skill's install path? Use a `HYDRA` variable
   or the command name; a home-directory path breaks on the next machine.
-- Does the generated discovery map link resolve from the directory it is
-  written to? The link prefix is computed from `--docs-out` to `--out`.
-- Is a `record` pass in `[[evidence]]` with its review doc linked by
-  `date` + `pass`, while a `survey` or `draft` stays out of the evidence table?
 - Is the route the only selector? A hand-picked subset is an unrecorded route.
-- Is a counterexample's full pattern in one home, with the project row as an
-  instance link rather than a second copy?
+- Is a counterexample's full pattern in one home, with the pass record holding
+  only its project-specific candidate and evidence?
 - Is this a fixture? Put it under `tests/fixtures/`.
 - Is this a stance set? Only `tests/fixtures/` holds one. A worked example is
   prose in `skills/*/references/`, never a stance set.

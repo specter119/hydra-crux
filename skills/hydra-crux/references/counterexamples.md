@@ -5,32 +5,26 @@ recognizes the pattern instead of rediscovering it. A counterexample is not a
 rule. It is evidence about how an objective gets violated, and the argument that
 made the violation look reasonable.
 
-## Two tiers, and why they must not mix
+## Patterns and process failures
 
-| Tier                | Holds                                      | Location                                                   |
-| ------------------- | ------------------------------------------ | ---------------------------------------------------------- |
-| **Pattern**         | The shape, project-neutral, no paths       | This file, `## Patterns`                                   |
-| **Instance**        | Where it happened, with paths and evidence | The project's own registry, `## Counterexamples harvested` |
-| **Process failure** | How a *review pass* failed                 | This file, `## Process failures`                           |
-
-A pattern that carries one project's file paths cannot be reused by another,
-and a reader cannot tell whether it was generalized or copied. Keep the shape
-here and the instance there, linked by a short name.
+A **pattern** is a project-neutral design or contract deviation; a **process
+failure** is a repeatable failure of the review pass itself. Both live here.
+Project paths, findings, and evidence stay in the originating pass document.
+Never copy those details into the general library.
 
 ## Promotion
 
-When an instance reveals a general shape:
+A review writes candidates in its pass document. During topology evolution,
+promote a candidate only when it reveals a reusable shape:
 
-1. Add the pattern to `## Patterns` with the grounded defender argument.
-2. Replace the project row's full prose with the short pattern name.
-3. Keep the instance's `caught_by`, `status`, and evidence.
-4. Delete the project row only when no instance-specific fact remains.
+1. Add one project-neutral pattern with its grounded defender argument.
+2. Link the originating pass or decision as the origin without duplicating its
+   paths and findings.
+3. Update the catching stance's attacks when the generalized shape improves
+   future review, or move a mechanically checkable shape into the toolchain.
 
-Do not copy the library prose into the project graph. A full pattern definition
-has one home; the instance is a link. `caught_by` is a known surface or stance
-id, or `all` / `all stances` for a pattern caught by the whole set. A
-counterexample with no catcher is a bug report or a toolchain rule, not a
-counterexample.
+A full pattern has one home. A candidate with no catcher is a bug report or a
+toolchain rule, not a counterexample.
 
 ## Grounding rules
 
@@ -41,12 +35,11 @@ Every `## Patterns` entry needs:
   that argument actually appeared: a commit message, a PR comment, a document
   sentence, a test name, or the author's own words in the pass. If it cannot be
   cited, write `Reconstructed — no recorded origin` and treat the entry as a
-  hypothesis rather than a pattern. An invented defender is a strawman, and a
-  library of strawmen trains reviewers to fight arguments nobody makes.
+  hypothesis rather than a pattern. An invented defender is a strawman.
 - **How it was caught** — the stance, and the check that exposed it.
 - **What it would have cost** — the consequence if it had shipped.
-- **Instance** — `see <project> registry` or a decision record. Never a path from
-  another project.
+- **Origin** — the originating pass or decision record, not another project's
+  paths.
 
 An entry that cannot supply a grounded "why it looks reasonable" is a bug
 report, and belongs in the issue tracker. An entry a lint rule or a test could
@@ -70,7 +63,7 @@ catch is a rule or a test, and belongs in the project's toolchain.
   populates the field, then running the shipped test body with a probe.
 - **What it would have cost:** A secret readable by every local account while the
   tool reported a narrow mode, with no reason for the operator to look.
-- **Instance:** see the project registry that shipped this pass.
+- **Origin:** see the originating pass record that shipped this pass.
 
 ### A time window stands in for an evidence check
 
@@ -85,7 +78,7 @@ catch is a rule or a test, and belongs in the project's toolchain.
   what the decision is. The answer was "how long ago the plan was built".
 - **What it would have cost:** A write authorized by a stale read, reported as
   fresh, with the window invisible in the output.
-- **Instance:** see the project registry.
+- **Origin:** see the originating pass record.
 
 ### A limit is stated as a fact rather than an argument
 
@@ -100,7 +93,7 @@ catch is a rule or a test, and belongs in the project's toolchain.
   and what the payment buys.
 - **What it would have cost:** A limit that no longer matches its reason survives
   forever, because nobody can tell when it expired.
-- **Instance:** see the project registry.
+- **Origin:** see the originating pass record.
 
 ### A stance's `Accepts this harm` names generic friction instead of an opponent
 
@@ -116,7 +109,7 @@ catch is a rule or a test, and belongs in the project's toolchain.
 - **What it would have cost:** The registry asserted an opposition one member did
   not hold, so a pass over that set would conclude "refuse" — the conclusion it
   would have reached without stances at all.
-- **Instance:** recorded in the set validation report of the project that
+- **Origin:** recorded in the set validation report of the project that
   produced it.
 
 ### A stance absorbs a cost its opponent actually pays
@@ -131,13 +124,12 @@ catch is a rule or a test, and belongs in the project's toolchain.
   asking which stance's named refuse-path each cost actually came from.
 - **What it would have cost:** Three of four stances voting the same way on every
   refuse-or-proceed question, manufacturing consensus and hiding the tradeoff.
-- **Instance:** see the set validation report.
+- **Origin:** see the set validation report.
 
 ### A one-sided sacrifice is filed as a shared win
 
-- **Pattern:** A conflict is recorded under "resolved without escalation, serves
-  both" when one stance gave something up and the other gained. The ledger makes
-  the loss invisible.
+- **Pattern:** A conflict is recorded as a joint decision when one stance gave
+  something up and the other gained. The ledger makes the loss invisible.
 - **Why it looks reasonable:** The design genuinely serves one objective well and
   the sacrifice is subtle. It reads as a clever resolution rather than a
   concession.
@@ -145,8 +137,8 @@ catch is a rule or a test, and belongs in the project's toolchain.
   status document, and finding a stance that recorded the same facts as a
   one-sided cost.
 - **What it would have cost:** The set's only documented sacrifice filed as a win,
-  while the open-conflict table read "none recorded yet".
-- **Instance:** see the project registry.
+  with no open decision recording the outstanding loss.
+- **Origin:** see the originating pass record.
 
 ### An axis is named for a resource no stance contends
 
@@ -159,7 +151,7 @@ catch is a rule or a test, and belongs in the project's toolchain.
   second term. The answer was none.
 - **What it would have cost:** A stated ambition of the project with no
   representative, so the set could not see the project's own goal.
-- **Instance:** see the project registry's unrepresented-stakes table.
+- **Origin:** see the originating pass record and its unrepresented-interest candidate.
 
 ### The winning side of a recorded decision has no stance
 
@@ -172,7 +164,7 @@ catch is a rule or a test, and belongs in the project's toolchain.
   the side that won.
 - **What it would have cost:** A tradeoff recorded as settled by a party not
   present; a later reader cannot reconstruct why the winner won.
-- **Instance:** see the project registry.
+- **Origin:** see the originating pass record.
 
 ### An escalation trigger names today's vocabulary or today's number
 
@@ -185,7 +177,7 @@ catch is a rule or a test, and belongs in the project's toolchain.
   mechanism it protects.
 - **What it would have cost:** A benign rename blocked, and a genuine violation
   in different words passed — the failure stances exist to prevent.
-- **Instance:** see the set validation report.
+- **Origin:** see the set validation report.
 
 ### A stance file is seeded with its author's open findings
 
@@ -201,7 +193,7 @@ catch is a rule or a test, and belongs in the project's toolchain.
   came from, and noticing that the "new" findings were the file's attack list.
 - **What it would have cost:** Verification theatre — a set that appears to
   produce findings which were decided before the review began.
-- **Instance:** see the project registry's evidence table.
+- **Origin:** see the originating pass record's Findings and Ledger.
 
 ## Process failures
 
@@ -225,12 +217,11 @@ they are harder to notice because a failed pass still produces a report.
   fine".
 - **Why it looks reasonable:** The clean result is plausible and everyone wants
   to move on.
-- **Check:** A clean pass is legitimate only with evidence that the stances could
-  have fired: at least one finding per reviewed stance, or a recorded statement
-  that the target was too small for that stance's attacks. A stance that was
-  reviewed twice on a surface it claims and produced no `new` findings is either
-  satisfied or badly written, and the two need different responses — see *the
-  silent stance* in [stance-design.md](stance-design.md).
+- **Check:** A clean pass is legitimate when the Ledger names the axes checked
+  and why the target did not trigger their attacks. A stance reviewed twice on a
+  surface it claims with no `new` findings is either satisfied or badly written;
+  decide which using *the silent stance* in
+  [stance-design.md](stance-design.md).
 - **Cost:** Silent stances accumulate and the set stops being an instrument.
 
 ### The contest was skipped because the conflict "looked obvious"
@@ -313,21 +304,20 @@ they are harder to notice because a failed pass still produces a report.
 - **Why it looks reasonable:** Closure sounds rigorous, and a connected graph
   feels like a complete review. The cost is hidden in reviewer time.
 - **Check:** Does the route select an axis because the changed surface declares
-  it contends, or only because a selected stance happens to touch it? The latter
-  belongs under "axes touched but not declared", not in the automatic set.
+  it contends, or only because a stance read the surface? The latter belongs in
+  `unselected_readers` for an explicit include-or-map-candidate decision, not in
+  the automatic set.
 - **Cost:** Review fatigue, then silent skipping, then a set nobody trusts.
 
-### The resolved decision that was never implemented
+### The chosen decision that was never implemented
 
-- **Shape:** A decision is recorded as resolved, the registry stops showing it as
-  open, and the code still does the old thing. The next reader treats the
-  decision as settled and does not re-check it.
+- **Shape:** A sacrifice is recorded and the code still does the old thing. The
+  next reader treats the choice as evidence that behavior changed.
 - **Why it looks reasonable:** The design question really was answered, and the
-  implementation feels like a separate task. "Resolved" is the only status the
-  ledger has.
-- **Check:** Every decision names a status (`decided`, `decided_not_implemented`,
-  `implemented`, `verified`) and an implementation or test. A route that touches
-  the decision surfaces it.
+  implementation feels like a separate task.
+- **Check:** Every sacrifice distinguishes `decided`, `implemented`, and
+  `verified`, with an implementation or test for the latter states. A route that
+  touches the decision surfaces it.
 - **Cost:** A decision that dominates the document but not the design, which is
   the exact drift the stance set exists to prevent.
 
@@ -345,14 +335,13 @@ they are harder to notice because a failed pass still produces a report.
 
 ## How to add an entry
 
-Add a `## Patterns` entry when a pass found a **design or contract deviation from
-the project's stated intent** — not a bug, not a style complaint, not a missing
-test. The test is: could a defender argue for it in good faith? Ground the
-defender's argument in something that was actually written or said.
+During evolution, promote a pass candidate into `## Patterns` when it is a
+**design or contract deviation from stated intent**—not a bug, style complaint,
+or missing test—and a defender could argue for it in good faith. Ground that
+argument in something actually written or said.
 
-Add a `## Process failures` entry when a pass itself went wrong in a way a later
-orchestrator could repeat. These are the most valuable entries and the least
-likely to be written, because the orchestrator is judging itself.
+Add a `## Process failures` entry when a pass itself went wrong in a repeatable
+way. These entries are valuable because the orchestrator must judge itself.
 
 Bugs and missing tests are not harvested. A library full of obvious mistakes
 trains reviewers to check for things nobody would ever do.

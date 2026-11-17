@@ -28,9 +28,8 @@ Fails at step 1, so the conflict is negotiable. It did not need escalation.
 Verification is local and stays per record; amortization is remote and stays
 per batch. Both objectives are fully served, not averaged.
 
-**Recorded.** Registry row under `Resolved without escalation`, with
-`tests/test_batch.py` asserting the remote call count so the buffer cannot
-silently erode.
+**Recorded.** A `joint` decision in the registry, with `tests/test_batch.py`
+asserting the remote call count so the buffer cannot silently erode.
 
 ## Essential: schema v4 field removal
 
@@ -106,8 +105,8 @@ Decision needed: Accept one-way rollback (A), or accept silent field loss for
 one release (B)?
 ```
 
-**Recorded.** C-1 in `Open essential conflicts`; after the answer, a row in
-`Decisions that sacrificed a stance` naming whichever objective lost.
+**Recorded.** C-1 as an `open` decision owned by the user; after the answer, a
+`sacrifice` decision with `decided_by="user"` names whichever objective lost.
 
 Note what the escalation does *not* do: it does not recommend, does not pick,
 and does not soften the losing stance. It also does not bundle the batch-write
