@@ -102,7 +102,9 @@ prose has to show which.
 - Lint checks metadata, structured paths, the registry, and pass records. It
   does not judge prose.
 - Prose needs semantic review. A pattern match can segment a document or
-  collect candidates; it cannot decide that a sentence is a verdict.
+  collect candidates; it cannot decide that a sentence is a verdict. A decision
+  model may triage candidates, and a human decides. The audit never becomes the
+  authority.
 - The set proves it can fire by stopping a known-bad control change, not by
   finding conflicts on a change nobody trusted it with.
 - Counterexamples compound when a pass records candidates and evolution
@@ -127,12 +129,38 @@ layer is the new value. A migration is complete when every old stable value is
 claimed by a stance, every old check has a surface home, and every surface
 verdict has a payer or is explicitly uncontested.
 
+## The decision model is triage
+
+A stake lives in sentences that a keyword list or a prototype ranker cannot tell
+apart: "No stance without a decision" and "Run the test before merging" share
+vocabulary and differ in role. A decision model, an external endpoint that
+answers a typed question about one sentence, can propose which role a sentence
+plays. It is opt-in, and once configured it applies to every mode.
+
+It proposes and never decides. Its answer is a probability, so a label is a
+candidate, a person records the disposition, and nothing enters the graph
+because a model said so. A probability near its boundary is not a decision, so
+low-confidence labels are for a person, not for a rule. It
+labels one sentence at a time. It does not cluster sentences or pair opposing
+stances, because agreement between two sentences is not opposition.
+
+The deterministic ranker has the opposite profile: a repeatable order that does
+not depend on the other inputs, and a weak reading of what a sentence means.
+The two are used together, each for what it is good at. The measurements behind
+this are in [`EXPERIMENTS.md`](EXPERIMENTS.md).
+
 ## Open questions
 
 - How much of the migration can be semantic automation without turning into a
   new schema?
 - How do we keep the graph from becoming a second prose layer?
 - How do we measure prose drift without turning a heuristic into a verdict?
+- Can a decision model triage prose without becoming the authority? A cache of
+  accepted and rejected candidates may make triage repeatable, but then the
+  cache is the authority.
+- Can a model check whether the graph's own anchors have already drifted from
+  the owner documents? Any classification of an anchor presupposes the anchor is
+  right, so this stays open until the check can be verified independently.
 
 ## Non-goals
 

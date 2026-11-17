@@ -136,6 +136,12 @@ Write each stake as *what this project would sacrifice other things to keep*.
 Cite `path#section` evidence. Stakes without opponents remain checks or
 unrepresented interests; do not manufacture contention.
 
+If a decision model is configured, run the inventory first (see
+[step 7](#7-audit-the-draft-against-the-owner-documents)) and give every
+**Objective candidate** a disposition: cite it as stake evidence, merge it into
+an existing stake, or reject it with a reason for the delivery report. A model
+label is a candidate, not a stake.
+
 ### 2. Separate surfaces from stances
 
 Classify each existing review paragraph semantically:
@@ -219,21 +225,21 @@ a hidden verdict remains a semantic review question.
 
 A first build has the same failure as a migration: the graph covers the stances
 its author had in mind and misses a stake the project already wrote down. Run
-the audit once the graph exists:
+the audit before step 1 without `--graph` (inventory only), and again once the
+graph exists:
 
 ```sh
 python3 "$HYDRA/scripts/concept_audit.py" run \
   --graph .agents/review-graph.toml \
-  --source AGENTS.md --source README.md --source docs \
-  --out concept-audit.md
+  --source AGENTS.md --source README.md --source docs
 ```
 
-`--source` takes a file or a directory; a directory contributes its `*.md`
-documents and its `*/SKILL.md` views. Read coverage candidates as "the owner
-documents say this and no home covers it", and layer-bleed rows as "this stance
-sentence is a check". The decision model is opt-in, not migration-only:
-configure it once and every build, migration, and evolution can use it. The
-audit never gates the build.
+The decision model is opt-in and not migration-only: once it is configured
+([setup](references/concept-audit.md#setup)), every build, migration, and
+evolution uses it, and without a config the audit still runs and says what it
+skipped. It classifies sentences into roles as a second opinion. It does not
+gate the build, decide a verdict, or change a route. Read the report with
+[concept-audit.md](references/concept-audit.md#reading-the-report).
 
 ### 8. Add the entry point
 
@@ -322,6 +328,10 @@ disclosure or one surface catalog with clear per-surface sections. Write every
 stance from its evidence and opposition test, and keep prevention skills outside
 the graph.
 
+Before migration step 3 deletes anything, run the build step 7 audit with the old review skills
+as `--source` and read its coverage rows: an old sentence no home covers is a
+migration loss to fix or to report. Do not pass a prevention skill as a source.
+
 ### 3. Replace entry points and validate
 
 Delete the old review skills, remove every old entry point, and point the
@@ -355,7 +365,7 @@ Report:
 
 - old skills and their destinations;
 - axes, stances, decisions, and the evidence for each;
-- checks moved, merged, or dropped;
+- checks moved, merged, or dropped, including orphans from the audit;
 - unrepresented interests;
 - commands and results;
 - each acceptance control's outcome;
@@ -388,9 +398,11 @@ documents before editing.
 4. Generate, lint, and route a real control change. Every omission is an
    explicit per-axis skip with a reason.
 5. Repeat the semantic audits for surface verdicts, preloaded stances, real
-   payers, and unrepresented interests.
+   payers, and unrepresented interests. The build step 7 layer-bleed rows rank where
+   to read first.
 6. If an owner document changed, re-check every stake whose evidence cites it.
-   A contract change that selects no relevant stance is a routing gap.
+   A contract change that selects no relevant stance is a routing gap. Run the
+   build step 7 audit on the changed documents to see what no home covers.
 
 ## Formalism is the failure mode
 

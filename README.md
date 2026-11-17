@@ -130,6 +130,22 @@ is a metadata-only stance set for a real project, checked by the mechanical
 rules. [`escalation-worked-example.md`](skills/hydra-crux/references/escalation-worked-example.md)
 contrasts a negotiable conflict with an essential one.
 
+## Decision model (optional)
+
+`concept_audit.py` can ask an external decision model to label each sentence of
+your owner documents with a role, which gives the stakes a steadier starting
+list. It is off until you configure it, and it never gates, routes, or rules.
+
+```bash
+python3 "$HYDRA/scripts/concept_audit.py" setup \
+  --decision-url <endpoint> --decision-model <model-id> \
+  --decision-key-env HYDRA_DECISION_KEY
+python3 "$HYDRA/scripts/concept_audit.py" status
+```
+
+Setup, the endpoint contract, and how to read the report are in
+[`concept-audit.md`](skills/hydra-crux/references/concept-audit.md).
+
 ## Learn more
 
 - [docs/IDEA.md](docs/IDEA.md) — why opposing stances, what ablation means, and
