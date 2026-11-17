@@ -256,23 +256,32 @@ an audit trail; it does not make target edits disappear.
 
 ## Install the lint hook
 
-For pre-commit, register this hook with the project's other hooks:
+The repository ships a hook manifest, so a project declares the hook instead of
+copying its command:
 
 ```yaml
-- id: hydra-crux-lint
-  name: Hydra Crux lint
-  language: system
-  always_run: true
-  pass_filenames: false
-  entry: sh -c 'exec python3 "${HYDRA_CRUX_SKILL:-$HOME/.agents/skills/hydra-crux}/scripts/hydra_graph.py" lint'
+repos:
+  - repo: https://github.com/specter119/hydra-crux
+    rev: 0.1.0
+    hooks:
+      - id: hydra-crux-lint
 ```
 
-Use the same fields in `prek.toml`. This TOML basic string escapes the nested
-double quotes while preserving the shell's single quotes:
+`prek.toml` takes the same fields:
 
 ```toml
-entry = "sh -c 'exec python3 \"${HYDRA_CRUX_SKILL:-$HOME/.agents/skills/hydra-crux}/scripts/hydra_graph.py\" lint'"
+[[repos]]
+repo = "https://github.com/specter119/hydra-crux"
+rev = "0.1.0"
+hooks = [{ id = "hydra-crux-lint" }]
 ```
+
+The hook runs `hydra_graph.py lint` from the pinned checkout, so it needs no
+global skill install and ignores `HYDRA_CRUX_SKILL`. It runs on every commit
+because the graph, the registry, and the pass documents are checked as a whole.
+The consumer's `python3` must be 3.11 or newer, the same floor as the bundled
+scripts. To lint a graph outside the default discovery path, override `args`
+with `["--graph", "<path>", "lint"]`.
 
 The hook is a backstop; the agent still runs lint itself.
 

@@ -9,16 +9,17 @@ verify the change. It is not user documentation; users start at `README.md`.
 Every file has one audience and one job. If a fact does not fit a row, add a row
 before adding the file.
 
-| Path                       | Audience                | Owns                                                       | Must not contain                                |
-| -------------------------- | ----------------------- | ---------------------------------------------------------- | ----------------------------------------------- |
-| `README.md`                | users                   | what it is, install, use, how to read a review             | design rationale, contributor rules             |
-| `docs/IDEA.md`             | users and contributors  | why the design exists, ablation, non-goals, open questions | install commands, runtime procedure             |
-| `AGENTS.md`                | contributors and agents | scope map, change rules, verification, anti-drift checks   | user-facing marketing, design essays            |
-| `skills/*/SKILL.md`        | the agent at runtime    | the procedure the agent follows                            | project-specific topology, install instructions |
-| `skills/*/references/*.md` | the agent at runtime    | deep procedure, templates, examples linked from `SKILL.md` | duplicated `SKILL.md` content                   |
-| `skills/*/scripts/*.py`    | maintainers             | graph engine, metadata and pass lint                       | prose judgment                                  |
-| `tests/`                   | maintainers             | verification; fixtures live in `tests/fixtures/`           | shipped examples, stance prose                  |
-| `docs/assets/`             | users                   | images                                                     | text                                            |
+| Path                       | Audience                          | Owns                                                       | Must not contain                                |
+| -------------------------- | --------------------------------- | ---------------------------------------------------------- | ----------------------------------------------- |
+| `README.md`                | users                             | what it is, install, use, how to read a review             | design rationale, contributor rules             |
+| `docs/IDEA.md`             | users and contributors            | why the design exists, ablation, non-goals, open questions | install commands, runtime procedure             |
+| `AGENTS.md`                | contributors and agents           | scope map, change rules, verification, anti-drift checks   | user-facing marketing, design essays            |
+| `skills/*/SKILL.md`        | the agent at runtime              | the procedure the agent follows                            | project-specific topology, install instructions |
+| `skills/*/references/*.md` | the agent at runtime              | deep procedure, templates, examples linked from `SKILL.md` | duplicated `SKILL.md` content                   |
+| `skills/*/scripts/*.py`    | maintainers                       | graph engine, metadata and pass lint                       | prose judgment                                  |
+| `.pre-commit-hooks.yaml`   | projects using pre-commit or prek | the installable lint hook id and command                   | prose, project topology                         |
+| `tests/`                   | maintainers                       | verification; fixtures live in `tests/fixtures/`           | shipped examples, stance prose                  |
+| `docs/assets/`             | users                             | images                                                     | text                                            |
 
 The runtime skills ship from `skills/`, not `.agents/skills/`. `.agents/skills/`
 is the project-scope discovery root; this repository is not a consumer of its

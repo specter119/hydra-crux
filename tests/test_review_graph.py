@@ -1502,6 +1502,18 @@ class PrekConfigTests(unittest.TestCase):
         hook = text.split('id = "validate-skills"', 1)[1]
         self.assertIn("files = '^(skills|tests|scripts)/'", hook)
 
+    def test_hook_manifest_ships_the_lint_hook(self) -> None:
+        text = (ROOT / ".pre-commit-hooks.yaml").read_text(encoding="utf-8")
+        self.assertIn("id: hydra-crux-lint", text)
+        self.assertIn("entry: skills/hydra-crux/scripts/hydra_graph.py", text)
+        self.assertIn("args: [lint]", text)
+        self.assertIn("language: script", text)
+        self.assertIn("always_run: true", text)
+        self.assertIn("pass_filenames: false", text)
+        entry = ROOT / "skills" / "hydra-crux" / "scripts" / "hydra_graph.py"
+        self.assertTrue(entry.is_file())
+        self.assertTrue(os.access(entry, os.X_OK))
+
 
 class LuwuFixtureTests(unittest.TestCase):
     def setUp(self) -> None:

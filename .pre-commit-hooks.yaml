@@ -1,0 +1,8 @@
+- id: hydra-crux-lint
+  name: Hydra Crux lint
+  description: Lint the review graph, generated registry, and review passes.
+  entry: skills/hydra-crux/scripts/hydra_graph.py
+  args: [lint]
+  language: script
+  always_run: true
+  pass_filenames: false

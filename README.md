@@ -105,6 +105,9 @@ binding rules are documented in
 [the review skill](skills/hydra-crux-review/SKILL.md#1-bind-the-pass). Fix the
 graph and reroute rather than hand-picking stances.
 
+To run `lint` as a git hook, see
+[the hook install](skills/hydra-crux/references/graph-format.md#install-the-lint-hook).
+
 ## Reading a review
 
 A review result has three parts:
